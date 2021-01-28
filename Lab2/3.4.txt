@@ -1,0 +1,1 @@
+The style that is easiest to modify is the behavioral style, because you can use a for loop to iterate through the bits of an input bus so that you don't have to modify it that much when the exact number of bits changes. Otherwise you would have to write new code for every bit that is in the input.
