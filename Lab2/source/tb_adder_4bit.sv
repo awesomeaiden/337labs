@@ -17,15 +17,15 @@ module tb_adder_4bit
 	localparam TEST_B_BIT					= NUM_INPUT_BITS;
 	localparam TEST_CARRY_IN_BIT	= MAX_TEST_BIT;
 	localparam TEST_SUM_BIT				= 0;
-	localparam TEST_CARRY_OUT_BIT	= MAX_OUTPUT_BIT;
+	localparam TEST_OVERFLOW_BIT	= MAX_OUTPUT_BIT;
 	localparam TEST_DELAY					= 10;
 	
 	// Declare Design Under Test (DUT) portmap signals
-	wire	tb_a;
-	wire	tb_b;
+	wire	[(NUM_INPUT_BITS - 1):0] tb_a;
+	wire	[(NUM_INPUT_BITS - 1):0] tb_b;
 	wire	tb_carry_in;
-	wire	tb_sum;
-	wire	tb_carry_out;
+	wire	[(NUM_INPUT_BITS - 1):0] tb_sum;
+	wire	tb_overflow;
 	
 	// Declare test bench signals
 	integer tb_test_case;
@@ -33,11 +33,11 @@ module tb_adder_4bit
 	reg [MAX_OUTPUT_BIT:0] tb_expected_outputs;
 	
 	// DUT port map
-	adder_4bit DUT(.a(tb_a), .b(tb_b), .carry_in(tb_carry_in), .sum(tb_sum), .carry_out(tb_carry_out));
+	adder_4bit DUT(.a(tb_a), .b(tb_b), .carry_in(tb_carry_in), .sum(tb_sum), .overflow(tb_overflow));
 	
 	// Connect individual test input bits to a vector for easier testing
-	assign tb_a					= tb_test_inputs[TEST_A_BIT];
-	assign tb_b					= tb_test_inputs[TEST_B_BIT];
+	assign tb_a					= tb_test_inputs[(NUM_INPUT_BITS - 1):TEST_A_BIT];
+	assign tb_b					= tb_test_inputs[(MAX_TEST_BIT - 1):TEST_B_BIT];
 	assign tb_carry_in	= tb_test_inputs[TEST_CARRY_IN_BIT];
 	
 	// Test bench process
@@ -63,19 +63,19 @@ module tb_adder_4bit
 			#(TEST_DELAY - 1);
 			
 			// Check the DUT's Sum output value
-			if(tb_expected_outputs[TEST_SUM_BIT] == tb_sum)
+			if(tb_expected_outputs[(MAX_OUTPUT_BIT - 1):TEST_SUM_BIT] == tb_sum)
 			begin
-				$info("Correct Sum value for test case %d!", tb_test_case);
+				//$info("Correct Sum value for test case %d!", tb_test_case);
 			end
 			else
 			begin
 				$error("Incorrect Sum value for test case %d!", tb_test_case);
 			end
 			
-			// Check the DUT's Carry Out output value
-			if(tb_expected_outputs[TEST_CARRY_OUT_BIT] == tb_carry_out)
+			// Check the DUT's overflow output value
+			if(tb_expected_outputs[TEST_OVERFLOW_BIT] == tb_overflow)
 			begin
-				$info("Correct Carry Out value for test case %d!", tb_test_case);
+				//$info("Correct Carry Out value for test case %d!", tb_test_case);
 			end
 			else
 			begin
