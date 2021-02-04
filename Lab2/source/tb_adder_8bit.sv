@@ -1,12 +1,12 @@
 // 337 Lab 2 Testbench
-// This code serves as a test bench for the 4 bit adder design 
+// This code serves as a test bench for the 8 bit adder design 
 
 `timescale 1ns / 100ps
 
-module tb_adder_4bit
+module tb_adder_8bit
 ();
 	// Define local parameters used by the test bench
-	localparam NUM_INPUT_BITS			= 4;
+	localparam NUM_INPUT_BITS			= 8;
 	localparam NUM_OUTPUT_BITS		= NUM_INPUT_BITS + 1;
 	localparam MAX_OUTPUT_BIT			= NUM_OUTPUT_BITS - 1;
 	localparam NUM_TEST_BITS 			= (NUM_INPUT_BITS * 2) + 1;
@@ -33,7 +33,7 @@ module tb_adder_4bit
 	reg [MAX_OUTPUT_BIT:0] tb_expected_outputs;
 	
 	// DUT port map
-	adder_4bit DUT(.a(tb_a), .b(tb_b), .carry_in(tb_carry_in), .sum(tb_sum), .overflow(tb_overflow));
+	adder_8bit DUT(.a(tb_a), .b(tb_b), .carry_in(tb_carry_in), .sum(tb_sum), .overflow(tb_overflow));
 	
 	// Connect individual test input bits to a vector for easier testing
 	assign tb_a					= tb_test_inputs[(NUM_INPUT_BITS - 1):TEST_A_BIT];

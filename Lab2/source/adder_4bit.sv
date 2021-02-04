@@ -24,3 +24,4 @@ module adder_4bit (a, b, carry_in, sum, overflow);
   endgenerate
   assign overflow = carrys[4];
 endmodule
+
