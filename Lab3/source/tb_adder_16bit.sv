@@ -52,8 +52,7 @@ adder_16bit DUT (.a(tb_a), .b(tb_b), .carry_in(tb_carry_in), .sum(tb_sum), .over
 // Initial block to cleanly define the contents of the test-vector array
 initial begin
   // Create the test-vector array with enough slots for test cases
-  // STUDENT TODO: Update the array declaration to have enough slots
-  tb_test_cases = new[1];
+  tb_test_cases = new[6];
 
   // First Test Case/Test-Vector
   tb_test_cases[0].test_name = "Zeros Check";
@@ -61,7 +60,36 @@ initial begin
   tb_test_cases[0].test_b    = '0;
   tb_test_cases[0].test_cin  = 1'b0;
 
-  // STUDENT TODO: Add your additional test cases here after increasing the array size
+  // Additional case 1
+  tb_test_cases[1].test_name = "LASB";
+  tb_test_cases[1].test_a    = 16'd62526;
+  tb_test_cases[1].test_b    = 16'd1783;
+  tb_test_cases[1].test_cin  = 1'b0;
+
+  // Additional case 2
+  tb_test_cases[2].test_name = "SALB";
+  tb_test_cases[2].test_a    = 16'd584;
+  tb_test_cases[2].test_b    = 16'd62657;
+  tb_test_cases[2].test_cin  = 1'b1;
+
+  // Additional case 3
+  tb_test_cases[3].test_name = "LALB";
+  tb_test_cases[3].test_a    = 16'd64904;
+  tb_test_cases[3].test_b    = 16'd52678;
+  tb_test_cases[3].test_cin  = 1'b1;
+
+  // Additional case 4
+  tb_test_cases[4].test_name = "SASB";
+  tb_test_cases[4].test_a    = 16'd1;
+  tb_test_cases[4].test_b    = 16'd89;
+  tb_test_cases[4].test_cin  = 1'b0;
+
+  // Additional case 5
+  tb_test_cases[5].test_name = "bit3";
+  tb_test_cases[5].test_a    = 16'b1000;
+  tb_test_cases[5].test_b    = 16'b0111;
+  tb_test_cases[5].test_cin  = 1'b1;
+
 end
 
 // Handle expected results bit-slice mappings

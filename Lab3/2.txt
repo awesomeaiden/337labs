@@ -1,8 +1,9 @@
 For the adder_16 with the modified makefile, in the first synthesis pass:
 Critical Path Delay: 7.13
 Area: 17280
+Power: 11.366
 
 For the second synthesis pass:
 Critical Path Delay: 5.68
 Area: 20844
-
+Power: 15.165
