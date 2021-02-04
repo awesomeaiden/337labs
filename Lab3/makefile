@@ -350,9 +350,27 @@ report_power -hier >> reports/$(MOD_NAME).rep
 
 # Step 5: Output final VHDL and Verilog files
 write_file -format verilog -hierarchy -output "mapped/$(MOD_NAME).v"
+
+# Second Compilation Run. Repeat Steps 2-5
+# Step 2: Put the max delay constraints in the second pass only
+set_max_delay 6 -from "b[0]" -to "sum[15]"
+
+# Step 3: Compile the design
+set_structure true -design $(MOD_NAME) -boolean true -boolean_effort medium
+compile -map_effort high -boundary_optimization
+
+# Step 4: Output reports
+report_timing -path full -delay max -max_paths 1 -nworst 1 > reports/$(MOD_NAME)_1.rep
+report_area >> reports/$(MOD_NAME)_1.rep
+report_power -hier >> reports/$(MOD_NAME)_1.rep
+
+# Step 5: Output final Verilog and Verilog files
+write_file -format verilog -hierarchy -output "mapped/$(MOD_NAME)_1.v"
+
 echo "\nScript Done\n"
 echo "\nChecking Design\n"
 check_design
+exit
 quit
 endef
 
