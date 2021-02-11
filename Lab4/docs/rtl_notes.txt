@@ -1,0 +1,5 @@
+Don't need clock and reset signals for RTL.  Also put a circle on reset for n_rst.  This works, but create a two-way mux.  You don't need a new mux for each control signal.  Try to keep signals going from left to right not right to left.
+
+Even if count enable is low, your rollover value checker should check the value of count + 1.  Separate track.  Combine increment mux and clear mux into one.
+
+On left side: combinational block with mux/muxes.  In middle, count register.  oOn right, count out and adder feeding back to combinational block on left.
