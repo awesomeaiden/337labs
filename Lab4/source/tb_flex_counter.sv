@@ -173,22 +173,47 @@ module tb_flex_counter();
 
     // Wait for DUT to process stimulus before checking results
     @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    #(CHECK_DELAY);
+    // Check results
+    check_count(1, "during continuous counting");
+    check_flag(0, "during continuous counting");
     @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    #(CHECK_DELAY);
+    // Check results
+    check_count(2, "during continuous counting");
+    check_flag(1, "during continuous counting");
     @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    #(CHECK_DELAY);
+    // Check results
+    check_count(1, "during continuous counting");
+    check_flag(0, "during continuous counting");
     @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    #(CHECK_DELAY);
+    // Check results
+    check_count(2, "during continuous counting");
+    check_flag(1, "during continuous counting");
     @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    #(CHECK_DELAY);
+    // Check results
+    check_count(1, "during continuous counting");
+    check_flag(0, "during continuous counting");
     @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    #(CHECK_DELAY);
+    // Check results
+    check_count(2, "during continuous counting");
+    check_flag(1, "during continuous counting");
     @(posedge tb_clk);
     // Move away from risign edge and allow for propagation delays before checking
     #(CHECK_DELAY);
     // Check results
-    check_count(2, "after continuous counting");
-    check_flag(1, "after continuous counting");
+    check_count(1, "after continuous counting");
+    check_flag(0, "after continuous counting");
 
     tb_test_num = tb_test_num + 1;
     tb_test_case = "Testing complete";

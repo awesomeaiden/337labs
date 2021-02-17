@@ -41,12 +41,13 @@ always_comb begin
     next_count = 0;
   end
   else begin
+    if ((next_count + 1) > rollover_val) begin
+      roll_flag = 1;
+    end
     if (count_enable == 1) begin
-      roll_flag = 0;
       next_count = count + 1;
     end
     if (next_count > rollover_val) begin
-      roll_flag = 1;
       next_count = 1;
     end
   end
