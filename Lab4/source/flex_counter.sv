@@ -7,7 +7,7 @@
 // Description: Flexible Counter
 
 module flex_counter
-#(parameter NUM_CNT_BITS = 4)
+#(parameter NUM_CNT_BITS = 3)
 (
 	input clk,
 	input n_rst,
@@ -23,11 +23,9 @@ logic roll_flag;
 
 // Count register
 always_ff @ (posedge clk, negedge n_rst)
-  begin: CountReg
+  begin
     if (n_rst == 0) begin
       count <= 0;
-      next_count <= 0;
-      roll_flag <= 0;
     end
     else
       count <= next_count;
@@ -35,15 +33,18 @@ always_ff @ (posedge clk, negedge n_rst)
 
 // Next state logic - dataflow or behavioral
 // Also where our roll_flag is registered
-always_comb begin:
-  roll_flag = 0; // default is 0
+always_comb begin
   next_count = count; // default is current count
+  roll_flag = 0; // default is 0
 
-  if (clear == 1)
+  if (clear == 1) begin
     next_count = 0;
+  end
   else begin
-    if (count_enable == 1)
+    if (count_enable == 1) begin
+      roll_flag = 0;
       next_count = count + 1;
+    end
     if (next_count > rollover_val) begin
       roll_flag = 1;
       next_count = 1;

@@ -20,7 +20,7 @@ module tb_flex_counter();
   localparam  FF_SETUP_TIME = 0.190;
   localparam  FF_HOLD_TIME  = 0.100;
   localparam  CHECK_DELAY   = (CLK_PERIOD - FF_SETUP_TIME); // Check right before the setup time starts
-  localparam  NUM_CNT_BITS = 4;
+  localparam  NUM_CNT_BITS = 3;
   localparam  RESET_VALUE     = 0;
   localparam  RESET_OUTPUT_VALUE = 0;
   
@@ -29,8 +29,8 @@ module tb_flex_counter();
   reg tb_n_rst;
   reg tb_clear;
   reg tb_count_enable;
-  reg [(NUM_CNT_BITS - 1):0] tb_rollover_val;
-  wire [(NUM_CNT_BITS - 1):0] tb_count_out;
+  reg [NUM_CNT_BITS:0] tb_rollover_val;
+  wire [NUM_CNT_BITS:0] tb_count_out;
   wire tb_rollover_flag;
   
   // Declare test bench signals
@@ -59,9 +59,18 @@ module tb_flex_counter();
   end
   endtask
 
+  // Task for shutting down the DUT
+  task shutdown_dut;
+  begin
+    reset_dut();
+    tb_clear = 1'b0;
+    tb_count_enable = 1'b0;
+  end
+  endtask
+
   // Task to cleanly and consistently check DUT count
   task check_count;
-    input logic  expected_count;
+    input logic [NUM_CNT_BITS:0] expected_count;
     input string check_tag;
   begin
     if(expected_count == tb_count_out) begin // Check passed
@@ -78,7 +87,7 @@ module tb_flex_counter();
     input logic  expected_flag;
     input string check_tag;
   begin
-    if(expected_flag == tb_count_out) begin // Check passed
+    if(expected_flag == tb_rollover_flag) begin // Check passed
       $info("Correct counter flag %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
@@ -145,7 +154,7 @@ module tb_flex_counter();
     tb_n_rst  = 1'b1;   // Deactivate the chip reset
     #0.1;
     // Check that internal state was correctly keep after reset release
-    check_output(RESET_OUTPUT_VALUE, "after reset was released");
+    check_count(RESET_OUTPUT_VALUE, "after reset was released");
 
     // ************************************************************************
     // Test Case 2: Continuous counting
@@ -180,6 +189,9 @@ module tb_flex_counter();
     // Check results
     check_count(2, "after continuous counting");
     check_flag(1, "after continuous counting");
-    
+
+    tb_test_num = tb_test_num + 1;
+    tb_test_case = "Testing complete";
+    shutdown_dut();
   end
 endmodule
