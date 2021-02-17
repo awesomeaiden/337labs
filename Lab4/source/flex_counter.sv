@@ -31,8 +31,7 @@ always_ff @ (posedge clk, negedge n_rst)
       count <= next_count;
   end
 
-// Next state logic - dataflow or behavioral
-// Also where our roll_flag is registered
+// Next state logic
 always_comb begin
   next_count = count; // default is current count
   roll_flag = 0; // default is 0
@@ -41,14 +40,14 @@ always_comb begin
     next_count = 0;
   end
   else begin
-    if ((next_count + 1) > rollover_val) begin
-      roll_flag = 1;
-    end
     if (count_enable == 1) begin
       next_count = count + 1;
+      if (next_count > rollover_val) begin
+        next_count = 1;
+      end
     end
-    if (next_count > rollover_val) begin
-      next_count = 1;
+    if (count == rollover_val) begin
+      roll_flag = 1;
     end
   end
 

@@ -16,7 +16,7 @@
 module tb_flex_counter();
 
   // Define local parameters used by the test bench
-  localparam  CLK_PERIOD    = 1;
+  localparam  CLK_PERIOD    = 2.5;
   localparam  FF_SETUP_TIME = 0.190;
   localparam  FF_HOLD_TIME  = 0.100;
   localparam  CHECK_DELAY   = (CLK_PERIOD - FF_SETUP_TIME); // Check right before the setup time starts
