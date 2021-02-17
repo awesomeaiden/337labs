@@ -1,6 +1,3 @@
-This works, but create a two-way mux.  You don't need a new mux for each control signal.
-Even if count enable is low, your rollover value checker should check the value of count + 1.  Separate track.  Combine increment mux and clear mux into one.
-
-For buses, indicate that it is a bus (with number)
-
 Usually you would you use a combinational block??
+
+Need to make "timing optimized" version for checkoff
