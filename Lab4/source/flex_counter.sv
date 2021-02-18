@@ -7,19 +7,19 @@
 // Description: Flexible Counter
 
 module flex_counter
-#(parameter NUM_CNT_BITS = 3)
+#(parameter NUM_CNT_BITS = 4)
 (
 	input clk,
 	input n_rst,
 	input clear,
 	input count_enable,
-	input [NUM_CNT_BITS:0] rollover_val,
-	output [NUM_CNT_BITS:0] count_out,
+	input [(NUM_CNT_BITS - 1):0] rollover_val,
+	output [(NUM_CNT_BITS - 1):0] count_out,
 	output rollover_flag
 );
 
-logic [NUM_CNT_BITS:0] count, next_count;
-logic roll_flag;
+logic [(NUM_CNT_BITS - 1):0] count, next_count;
+logic roll_flag, next_roll_flag;
 
 // Count register
 // Also rollover flag register
@@ -31,11 +31,7 @@ always_ff @ (posedge clk, negedge n_rst)
     end
     else begin
       count <= next_count;
-      if (next_count == rollover_val) begin
-        roll_flag <= 1;
-      end else begin
-        roll_flag <= 0;
-      end
+      roll_flag <= next_roll_flag;
      end
   end
 
@@ -56,6 +52,15 @@ always_comb begin
     end
   end
 
+end
+
+// Next roll flag logic
+always_comb begin
+  next_roll_flag = 0; // default is 0
+  
+  if (next_count == rollover_val) begin
+    next_roll_flag = 1;
+  end
 end
 
 assign count_out = count;

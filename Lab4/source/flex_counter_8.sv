@@ -17,7 +17,7 @@ module flex_counter_8
 	output rollover_flag
 );
 
-flex_counter #(.NUM_CNT_BITS(7)) DUT (.clk(clk), 
+flex_counter #(.NUM_CNT_BITS(8)) DUT (.clk(clk), 
                                       .n_rst(n_rst), 
                                       .clear(clear), 
                                       .count_enable(count_enable),

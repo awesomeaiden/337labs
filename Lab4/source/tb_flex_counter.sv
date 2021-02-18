@@ -20,7 +20,7 @@ module tb_flex_counter();
   localparam  FF_SETUP_TIME = 0.190;
   localparam  FF_HOLD_TIME  = 0.100;
   localparam  CHECK_DELAY   = (CLK_PERIOD - FF_SETUP_TIME); // Check right before the setup time starts
-  localparam  NUM_CNT_BITS = 3;
+  localparam  NUM_CNT_BITS = 4;
   localparam  RESET_VALUE     = 0;
   localparam  RESET_OUTPUT_VALUE = 0;
   
@@ -29,8 +29,8 @@ module tb_flex_counter();
   reg tb_n_rst;
   reg tb_clear;
   reg tb_count_enable;
-  reg [NUM_CNT_BITS:0] tb_rollover_val;
-  wire [NUM_CNT_BITS:0] tb_count_out;
+  reg [(NUM_CNT_BITS - 1):0] tb_rollover_val;
+  wire [(NUM_CNT_BITS - 1):0] tb_count_out;
   wire tb_rollover_flag;
   
   // Declare test bench signals
@@ -70,7 +70,7 @@ module tb_flex_counter();
 
   // Task to cleanly and consistently check DUT count
   task check_count;
-    input logic [NUM_CNT_BITS:0] expected_count;
+    input logic [(NUM_CNT_BITS - 1):0] expected_count;
     input string check_tag;
   begin
     if(expected_count == tb_count_out) begin // Check passed
@@ -416,6 +416,7 @@ module tb_flex_counter();
 
     tb_test_num = tb_test_num + 1;
     tb_test_case = "Testing complete";
+    tb_rollover_val = 2'b10;
     shutdown_dut();
   end
 endmodule

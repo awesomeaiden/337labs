@@ -20,7 +20,8 @@ module tb_flex_counter_16();
   localparam  FF_SETUP_TIME = 0.190;
   localparam  FF_HOLD_TIME  = 0.100;
   localparam  CHECK_DELAY   = (CLK_PERIOD - FF_SETUP_TIME); // Check right before the setup time starts
-  localparam  NUM_CNT_BITS = 15;
+  localparam  LONG_COUNT = CLK_PERIOD * 400;
+  localparam  NUM_CNT_BITS = 16;
   localparam  RESET_VALUE     = 0;
   localparam  RESET_OUTPUT_VALUE = 0;
   
@@ -29,8 +30,8 @@ module tb_flex_counter_16();
   reg tb_n_rst;
   reg tb_clear;
   reg tb_count_enable;
-  reg [NUM_CNT_BITS:0] tb_rollover_val;
-  wire [NUM_CNT_BITS:0] tb_count_out;
+  reg [(NUM_CNT_BITS - 1):0] tb_rollover_val;
+  wire [(NUM_CNT_BITS - 1):0] tb_count_out;
   wire tb_rollover_flag;
   
   // Declare test bench signals
@@ -70,7 +71,7 @@ module tb_flex_counter_16();
 
   // Task to cleanly and consistently check DUT count
   task check_count;
-    input logic [NUM_CNT_BITS:0] expected_count;
+    input logic [(NUM_CNT_BITS - 1):0] expected_count;
     input string check_tag;
   begin
     if(expected_count == tb_count_out) begin // Check passed
@@ -175,7 +176,7 @@ module tb_flex_counter_16();
     // Reset DUT
     tb_clear = 1'b0;               // Initialize to be inactive
     tb_count_enable = 1'b0;        // Initialize to be inactive
-    tb_rollover_val = 5'b11001;       // Initialize rollover_val to be 25
+    tb_rollover_val = 9'b110011001;       // Initialize rollover_val to be 409
     reset_dut();
 
     // Assign test case stimulus
@@ -186,59 +187,48 @@ module tb_flex_counter_16();
     // Move away from rising edge and allow for propagation delays before checking
     @(negedge tb_clk);
     // Check results
-    check_count(1, "during rollover 25 counting");
-    check_flag(0, "during rollover 25 counting");
+    check_count(1, "during rollover 409 counting");
+    check_flag(0, "during rollover 409 counting");
     @(posedge tb_clk);
     // Move away from rising edge and allow for propagation delays before checking
     @(negedge tb_clk);
     // Check results
-    check_count(2, "during rollover 25 counting");
-    check_flag(0, "during rollover 25 counting");
+    check_count(2, "during rollover 409 counting");
+    check_flag(0, "during rollover 409 counting");
+
+    // Wait 400 clock cycles
+    #(LONG_COUNT);
+
     @(posedge tb_clk);
     @(posedge tb_clk);
     @(posedge tb_clk);
     @(posedge tb_clk);
     @(posedge tb_clk);
     @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
-    @(posedge tb_clk);
+
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(408, "during rollover 409 counting");
+    check_flag(0, "during rollover 409 counting");
     @(posedge tb_clk);
     // Move away from rising edge and allow for propagation delays before checking
     @(negedge tb_clk);
     // Check results
-    check_count(24, "during rollover 25 counting");
-    check_flag(0, "during rollover 25 counting");
+    check_count(409, "during rollover 409 counting");
+    check_flag(1, "during rollover 409 counting");
     @(posedge tb_clk);
     // Move away from rising edge and allow for propagation delays before checking
     @(negedge tb_clk);
     // Check results
-    check_count(25, "during rollover 25 counting");
-    check_flag(1, "during rollover 25 counting");
+    check_count(1, "during rollover 409 counting");
+    check_flag(0, "during rollover 409 counting");
     @(posedge tb_clk);
     // Move away from rising edge and allow for propagation delays before checking
     @(negedge tb_clk);
     // Check results
-    check_count(1, "during rollover 25 counting");
-    check_flag(0, "during rollover 25 counting");
-    @(posedge tb_clk);
-    // Move away from rising edge and allow for propagation delays before checking
-    @(negedge tb_clk);
-    // Check results
-    check_count(2, "after rollover 25 counting");
-    check_flag(0, "after rollover 25 counting");
+    check_count(2, "after rollover 409 counting");
+    check_flag(0, "after rollover 409 counting");
 
     // ************************************************************************
     // Test Case 3: Continuous counting
