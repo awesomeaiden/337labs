@@ -96,6 +96,16 @@ module tb_flex_counter();
   end
   endtask
 
+  // Task to cleanly and consistently assert clear
+  task pulse_clear;
+  begin
+    @(negedge tb_clk);
+    tb_clear = 1'b1;
+    @(negedge tb_clk);
+    tb_clear = 1'b0;
+  end
+  endtask
+
   // Clock generation block
   always
   begin
@@ -157,7 +167,78 @@ module tb_flex_counter();
     check_count(RESET_OUTPUT_VALUE, "after reset was released");
 
     // ************************************************************************
-    // Test Case 2: Continuous counting
+    // Test Case 2: Rollover for a rollover value that is not a power of two
+    // ************************************************************************    
+    @(negedge tb_clk);
+    tb_test_num = tb_test_num + 1;
+    tb_test_case = "Rollover for a rollover value that is not a power of two";
+    // Reset DUT
+    tb_clear = 1'b0;               // Initialize to be inactive
+    tb_count_enable = 1'b0;        // Initialize to be inactive
+    tb_rollover_val = 4'b1001;       // Initialize rollover_val to be 9
+    reset_dut();
+
+    // Assign test case stimulus
+    tb_count_enable = 1'b1;
+
+    // Wait for DUT to process stimulus before checking results
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(1, "during rollover 9 counting");
+    check_flag(0, "during rollover 9 counting");
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(2, "during rollover 9 counting");
+    check_flag(0, "during rollover 9 counting");
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(8, "during rollover 9 counting");
+    check_flag(0, "during rollover 9 counting");
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(9, "during rollover 9 counting");
+    check_flag(1, "during rollover 9 counting");
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(1, "during rollover 9 counting");
+    check_flag(0, "during rollover 9 counting");
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(9, "during rollover 9 counting");
+    check_flag(1, "during rollover 9 counting");
+    @(posedge tb_clk);
+    // Move away from risign edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(1, "after rollover 9 counting");
+    check_flag(0, "after rollover 9 counting");
+
+    // ************************************************************************
+    // Test Case 3: Continuous counting
     // ************************************************************************    
     @(negedge tb_clk);
     tb_test_num = tb_test_num + 1;
@@ -174,46 +255,164 @@ module tb_flex_counter();
     // Wait for DUT to process stimulus before checking results
     @(posedge tb_clk);
     // Move away from rising edge and allow for propagation delays before checking
-    #(CHECK_DELAY);
+    @(negedge tb_clk);
     // Check results
     check_count(1, "during continuous counting");
     check_flag(0, "during continuous counting");
     @(posedge tb_clk);
     // Move away from rising edge and allow for propagation delays before checking
-    #(CHECK_DELAY);
+    @(negedge tb_clk);
     // Check results
     check_count(2, "during continuous counting");
     check_flag(1, "during continuous counting");
     @(posedge tb_clk);
     // Move away from rising edge and allow for propagation delays before checking
-    #(CHECK_DELAY);
+    @(negedge tb_clk);
     // Check results
     check_count(1, "during continuous counting");
     check_flag(0, "during continuous counting");
     @(posedge tb_clk);
     // Move away from rising edge and allow for propagation delays before checking
-    #(CHECK_DELAY);
+    @(negedge tb_clk);
     // Check results
     check_count(2, "during continuous counting");
     check_flag(1, "during continuous counting");
     @(posedge tb_clk);
     // Move away from rising edge and allow for propagation delays before checking
-    #(CHECK_DELAY);
+    @(negedge tb_clk);
     // Check results
     check_count(1, "during continuous counting");
     check_flag(0, "during continuous counting");
     @(posedge tb_clk);
     // Move away from rising edge and allow for propagation delays before checking
-    #(CHECK_DELAY);
+    @(negedge tb_clk);
     // Check results
     check_count(2, "during continuous counting");
     check_flag(1, "during continuous counting");
     @(posedge tb_clk);
     // Move away from risign edge and allow for propagation delays before checking
-    #(CHECK_DELAY);
+    @(negedge tb_clk);
     // Check results
     check_count(1, "after continuous counting");
     check_flag(0, "after continuous counting");
+
+    // ************************************************************************
+    // Test Case 4: Discontinuous counting
+    // ************************************************************************    
+    @(negedge tb_clk);
+    tb_test_num = tb_test_num + 1;
+    tb_test_case = "Discontinuous counting";
+    // Reset DUT
+    tb_clear = 1'b0;               // Initialize to be inactive
+    tb_count_enable = 1'b0;        // Initialize to be inactive
+    tb_rollover_val = 3'b100;       // Initialize rollover_val to be 4
+    reset_dut();
+
+    // Assign test case stimulus
+    tb_count_enable = 1'b1;
+
+    // Wait for DUT to process stimulus before checking results
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(1, "during discontinuous counting");
+    check_flag(0, "during discontinuous counting");
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(2, "during discontinuous counting");
+    check_flag(0, "during discontinuous counting");
+
+    // Assign test case stimulus
+    tb_count_enable = 1'b0;
+
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(2, "during discontinuous counting");
+    check_flag(0, "during discontinuous counting");
+
+    // Assign test case stimulus
+    tb_count_enable = 1'b1;
+
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(3, "during discontinuous counting");
+    check_flag(0, "during discontinuous counting");
+
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(4, "during discontinuous counting");
+    check_flag(1, "during discontinuous counting");
+
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(1, "during discontinuous counting");
+    check_flag(0, "during discontinuous counting");
+    
+    // Assign test case stimulus
+    tb_count_enable = 1'b0;
+
+    @(posedge tb_clk);
+    // Move away from risign edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(1, "during discontinuous counting");
+    check_flag(0, "during discontinuous counting");
+
+    // ************************************************************************
+    // Test Case 5: Clearing while counting
+    // ************************************************************************    
+    @(negedge tb_clk);
+    tb_test_num = tb_test_num + 1;
+    tb_test_case = "Clearing while counting";
+    // Reset DUT
+    tb_clear = 1'b0;               // Initialize to be inactive
+    tb_count_enable = 1'b0;        // Initialize to be inactive
+    tb_rollover_val = 3'b100;       // Initialize rollover_val to be 4
+    reset_dut();
+
+    // Assign test case stimulus
+    tb_count_enable = 1'b1;
+
+    // Wait for DUT to process stimulus before checking results
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(1, "during clearing while counting");
+    check_flag(0, "during clearing while counting");
+    @(posedge tb_clk);
+
+    // Assign test case stimulus
+    pulse_clear();
+  
+    // Check results
+    check_count(0, "during clearing while counting");
+    check_flag(0, "during clearing while counting");
+
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(1, "during clearing while counting");
+    check_flag(0, "during clearing while counting");
+
+    @(posedge tb_clk);
+    // Move away from rising edge and allow for propagation delays before checking
+    @(negedge tb_clk);
+    // Check results
+    check_count(2, "during clearing while counting");
+    check_flag(0, "during clearing while counting");
 
     tb_test_num = tb_test_num + 1;
     tb_test_case = "Testing complete";
