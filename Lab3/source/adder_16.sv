@@ -2,7 +2,7 @@
 // Created:     1/19/2015
 // Author:      Tim Pritchett
 // Version:     1.0  Initial Design Entry
-// Description: 16 bit adder design wrapper for synthesis optimization seciton of Lab 2
+// Description: 16 bit adder design wrapper for synthesis optimization section of Lab 2
 
 module adder_16
 (

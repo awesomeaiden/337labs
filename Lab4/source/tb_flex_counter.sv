@@ -74,7 +74,7 @@ module tb_flex_counter();
     input string check_tag;
   begin
     if(expected_count == tb_count_out) begin // Check passed
-      $info("Correct counter output %s during %s test case", check_tag, tb_test_case);
+      //$info("Correct counter output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect counter output %s during %s test case", check_tag, tb_test_case);
@@ -88,7 +88,7 @@ module tb_flex_counter();
     input string check_tag;
   begin
     if(expected_flag == tb_rollover_flag) begin // Check passed
-      $info("Correct counter flag %s during %s test case", check_tag, tb_test_case);
+      //$info("Correct counter flag %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect counter flag %s during %s test case", check_tag, tb_test_case);
