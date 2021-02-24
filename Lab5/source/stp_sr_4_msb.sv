@@ -13,7 +13,7 @@ module stp_sr_4_msb
   input wire n_rst,
   input wire serial_in,
   input wire shift_enable,
-  output wire [3:0] parallel_out 
+  output wire [3:0] parallel_out
 );
 
   flex_stp_sr 

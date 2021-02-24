@@ -23,7 +23,7 @@ logic [(NUM_BITS- 1):0] state, next_state;
 always_ff @ (posedge clk, negedge n_rst)
   begin
     if (n_rst == 0) begin
-      state <= '0;
+      state <= ~0;
     end
     else begin
       state <= next_state;
