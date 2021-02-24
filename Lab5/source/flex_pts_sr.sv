@@ -24,11 +24,10 @@ logic [(NUM_BITS - 1):0] state, next_state;
 always_ff @ (posedge clk, negedge n_rst)
   begin
     if (n_rst == 0) begin
-      state <= 0;
-    end
-    else begin
+      state <= ~0;
+    end else begin
       state <= next_state;
-     end
+    end
   end
 
 // Next state logic
@@ -38,11 +37,19 @@ always_comb begin
   if (load_enable == 1) begin
     next_state = parallel_in;
   end else if (shift_enable == 1) begin
-    next_state = {0, state[(NUM_BITS - 1):1]};
+    if (SHIFT_MSB == 1) begin
+      next_state = {state[(NUM_BITS - 2):0], 1'b1};
+    end else begin
+      next_state = {1'b1, state[(NUM_BITS - 1):1]};
+    end
   end
 end
 
-assign serial_out = state[0];
+if (SHIFT_MSB == 1) begin
+  assign serial_out = state[(NUM_BITS - 1)];
+end else begin
+  assign serial_out = state[0];
+end
 
 endmodule
 

@@ -14,7 +14,7 @@ module pts_sr_4_msb
   input wire shift_enable,
   input wire load_enable,
   input wire [3:0] parallel_in,
-  output reg serial_out 
+  output reg serial_out
 );
 
   flex_pts_sr 

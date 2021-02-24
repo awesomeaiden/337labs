@@ -1,6 +1,6 @@
 // $Id: $
 // File name:   flex_stp_sr.sv
-// Created:     2/18/2021
+// Created:     2/24/2021
 // Author:      Aiden Gonzalez
 // Lab Section: 337-02
 // Version:     1.0  Initial Design Entry
@@ -38,7 +38,7 @@ always_comb begin
     if (SHIFT_MSB == 1) begin
       next_state = {state[(NUM_BITS - 2):0], serial_in};
     end else begin
-      next_state = {serial_in, state[(NUM_BITS - 1):1]};
+      next_state = {serial_in, state[(NUM_BITS - 1):1'b1]};
     end
   end
 end
