@@ -1,14 +1,14 @@
 // $Id: $
-// File name:   tb_moore.sv
+// File name:   tb_mealy.sv
 // Created:     2/24/2021
 // Author:      Aiden Gonzalez
 // Lab Section: 337-02
 // Version:     1.0  Initial Design Entry
-// Description: Test bench for the moore machine '1101' detector
+// Description: Test bench for the mealy machine '1101' detector
 
 `timescale 1ns / 10ps
 
-module tb_moore();
+module tb_mealy();
   // Define parameters
   // Common parameters
   localparam CLK_PERIOD        = 2.5;
@@ -30,10 +30,10 @@ module tb_moore();
   logic [6:0] tb_test_output;
 
   // Declare DUT Connection Signals
-  logic                tb_clk;
-  logic                tb_n_rst;
-  logic                tb_i;
-  logic                tb_o;
+  logic tb_clk;
+  logic tb_n_rst;
+  logic tb_i;
+  logic tb_o;
 
 // Task for standard DUT reset procedure
   task reset_dut;
@@ -117,7 +117,7 @@ module tb_moore();
   end
 
   // DUT Portmap
-  moore DUT (.clk(tb_clk), .n_rst(tb_n_rst), 
+  mealy DUT (.clk(tb_clk), .n_rst(tb_n_rst), 
                     .i(tb_i),
                     .o(tb_o));
 
@@ -216,6 +216,48 @@ module tb_moore();
 
     tb_test_num = tb_test_num + 1;
     tb_test_case = "Testing complete";
+
+    // ************************************************************************
+    // Test Case 4: Incorrect sequence 1s
+    // ************************************************************************
+    tb_test_num  = tb_test_num + 1;
+    tb_test_case = "Incorrect sequence 1s";
+    // Start out with inactive value and reset the DUT to isolate from prior tests
+    tb_i = 1'b0;
+    reset_dut();
+
+    // Define the test data stream for this test case
+    tb_test_data = 7'b1111111;
+
+    // Define the expected result
+    tb_expected_output = 1'b0;
+
+    // Contiguously stream enough zeros to fill the shift register
+    send_stream(tb_test_data);
+
+    // Check the result of the full stream
+    check_output("after 1s stream");
+
+    // ************************************************************************
+    // Test Case 5: Incorrect sequence 0s
+    // ************************************************************************
+    tb_test_num  = tb_test_num + 1;
+    tb_test_case = "Incorrect sequence 0s";
+    // Start out with inactive value and reset the DUT to isolate from prior tests
+    tb_i = 1'b0;
+    reset_dut();
+
+    // Define the test data stream for this test case
+    tb_test_data = 7'b0000000;
+
+    // Define the expected result
+    tb_expected_output = 1'b0;
+
+    // Contiguously stream enough zeros to fill the shift register
+    send_stream(tb_test_data);
+
+    // Check the result of the full stream
+    check_output("after 0s stream");
     
   end
 endmodule
