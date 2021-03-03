@@ -17,8 +17,11 @@ module timer
   output wire [3:0] CNT2_out
 );
 
-  wire CNT1_roll;
+  // make timers reset after packet_done
+
+  wire CNT1_roll, tim_clr;
   assign shift_enable = CNT1_roll;
+  assign tim_clr = packet_done;
 
   flex_counter
   CNT1 (
@@ -26,7 +29,7 @@ module timer
     .n_rst(n_rst),
     .count_enable(enable_timer),
     .rollover_val(4'b1010),
-    .clear(1'b0),
+    .clear(tim_clr),
     .count_out(CNT1_out),
     .rollover_flag(CNT1_roll)
   );
@@ -37,9 +40,9 @@ module timer
     .n_rst(n_rst),
     .count_enable(CNT1_roll),
     .rollover_val(4'b1001),
-    .clear(1'b0),
+    .clear(tim_clr),
     .count_out(CNT2_out),
     .rollover_flag(packet_done)
   );
-
+  
 endmodule

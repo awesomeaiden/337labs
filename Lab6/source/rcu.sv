@@ -19,14 +19,14 @@ module rcu
         output enable_timer
 );
 
-logic [3:0] state, next_state;
+logic [2:0] state, next_state;
 logic clear, enable, buffer, timer;
 
 // State register
 always_ff @ (posedge clk, negedge n_rst)
   begin
     if (n_rst == 0) begin
-      state <= 0;
+      state <= 3'b000;
     end
     else begin
       state <= next_state;
@@ -56,7 +56,7 @@ always_comb begin
         next_state = 3'b100;
     end
     3'b100: begin
-      next_state = 3'b00;
+      next_state = 3'b000;
     end
   endcase  
 end
