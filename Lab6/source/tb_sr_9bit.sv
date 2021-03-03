@@ -17,7 +17,8 @@ module tb_sr_9bit();
   localparam  INACTIVE_VALUE     = 1'b1;
   localparam  SR_SIZE_BITS       = 9;
   localparam  SR_MAX_BIT         = SR_SIZE_BITS - 1;
-  localparam  RESET_OUTPUT_VALUE = {SR_SIZE_BITS{1'b1}};
+  localparam  RESET_PACKET_VALUE = {SR_MAX_BIT{1'b1}};
+  localparam  RESET_STOP_VALUE   = 1'b1;
 
   // Declare Test Case Signals
   integer tb_test_num;
@@ -28,7 +29,7 @@ module tb_sr_9bit();
   logic   tb_check;
 
   // Declare the Test Bench Signals for Expected Results
-  logic [(SR_MAX_BIT - 1):0] tb_expected_output;
+  logic [(SR_MAX_BIT - 1):0] tb_expected_packet;
   logic tb_expected_stop;
   logic tb_test_data [];
 
@@ -38,7 +39,7 @@ module tb_sr_9bit();
   logic                tb_shift_strobe;
   logic                tb_serial_in;
   logic [(SR_MAX_BIT - 1):0] tb_packet_data;
-  logic                stop_bit;
+  logic                tb_stop_bit;
 
 // Task for standard DUT reset procedure
   task reset_dut;
@@ -63,17 +64,36 @@ module tb_sr_9bit();
   endtask
 
   // Task to cleanly and consistently check DUT output values
-  task check_output;
+  task check_packet;
     input string check_tag;
   begin
     tb_mismatch = 1'b0;
     tb_check    = 1'b1;
-    if(tb_expected_ouput == tb_parallel_out) begin // Check passed
-      $info("Correct parallel output %s during %s test case", check_tag, tb_test_case);
+    if(tb_expected_packet == tb_packet_data) begin // Check passed
+      $info("Correct packet data %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       tb_mismatch = 1'b1;
-      $error("Incorrect parallel output %s during %s test case", check_tag, tb_test_case);
+      $error("Incorrect packet data %s during %s test case", check_tag, tb_test_case);
+    end
+
+    // Wait some small amount of time so check pulse timing is visible on waves
+    #(0.1);
+    tb_check =1'b0;
+  end
+  endtask
+
+  task check_stop;
+    input string check_tag;
+  begin
+    tb_mismatch = 1'b0;
+    tb_check    = 1'b1;
+    if(tb_expected_stop == tb_stop_bit) begin // Check passed
+      $info("Correct stop bit %s during %s test case", check_tag, tb_test_case);
+    end
+    else begin // Check failed
+      tb_mismatch = 1'b1;
+      $error("Incorrect stop bit %s during %s test case", check_tag, tb_test_case);
     end
 
     // Wait some small amount of time so check pulse timing is visible on waves
@@ -91,15 +111,15 @@ module tb_sr_9bit();
     
     // Set the value of the bit
     tb_serial_in = bit_to_send;
-    // Activate the shift enable
-    tb_shift_enable = 1'b1;
+    // Activate the shift strobe
+    tb_shift_strobe = 1'b1;
 
     // Wait for the value to have been shifted in on the rising clock edge
     @(posedge tb_clk);
     #(PROPAGATION_DELAY);
 
-    // Turn off the Shift enable
-    tb_shift_enable = 1'b0;
+    // Turn off the Shift strobe
+    tb_shift_strobe = 1'b0;
   end
   endtask
 
@@ -129,8 +149,9 @@ module tb_sr_9bit();
   // DUT Portmap
   sr_9bit DUT (.clk(tb_clk), .n_rst(tb_n_rst), 
                     .serial_in(tb_serial_in), 
-                    .shift_enable(tb_shift_enable), 
-                    .parallel_out(tb_parallel_out));
+                    .shift_strobe(tb_shift_strobe), 
+                    .packet_data(tb_packet_data),
+                    .stop_bit(tb_stop_bit));
 
 
   // Test bench main process
@@ -138,7 +159,7 @@ module tb_sr_9bit();
     // Initialize all of the test inputs
     tb_n_rst            = 1'b1; // Initialize to be inactive
     tb_serial_in        = 1'b1; // Initialize to inactive value
-    tb_shift_enable     = 1'b0; // Initialize to be inactive
+    tb_shift_strobe     = 1'b0; // Initialize to be inactive
     tb_test_num         = 0;    // Initialize test case counter
     tb_test_case        = "Test bench initializaton";
     tb_stream_check_tag = "N/A";
@@ -157,26 +178,25 @@ module tb_sr_9bit();
     // Wait some time before applying test case stimulus
     #(0.1);
     // Apply test case initial stimulus
-    tb_serial_in = 1'b0;
     tb_n_rst     = 1'b0;
 
     // Wait for a bit before checking for correct functionality
     #(CLK_PERIOD * 0.5);
 
     // Check that internal state was correctly reset
-    tb_expected_ouput = RESET_OUTPUT_VALUE;
-    check_output("after reset applied");
+    tb_expected_packet = RESET_PACKET_VALUE;
+    tb_expected_stop = RESET_STOP_VALUE;
+    check_packet("after reset applied");
+    check_stop("after reset applied");
 
     // Check that the reset value is maintained during a clock cycle
     #(CLK_PERIOD);
-    check_output("after clock cycle while in reset");
+    check_packet("after clock cycle while in reset");
+    check_stop("after clock cycle while in reset");
     
     // Release the reset away from a clock edge
     @(negedge tb_clk);
     tb_n_rst  = 1'b1;   // Deactivate the chip reset
-    // Check that internal state was correctly keep after reset release
-    #(PROPAGATION_DELAY);
-    check_output("after reset was released");
 
     // ************************************************************************
     // Test Case 2: Normal Operation with Contiguous Zero Fill
@@ -188,56 +208,18 @@ module tb_sr_9bit();
     reset_dut();
 
     // Define the test data stream for this test case
-    tb_test_data = '{SR_SIZE_BITS{1'b0}};
+    tb_test_data = {1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1};
 
     // Define the expected result
-    tb_expected_ouput = '0;
+    tb_expected_packet = {1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0};
+    tb_expected_stop = 1'b1;
 
     // Contiguously stream enough zeros to fill the shift register
     send_stream(tb_test_data);
 
     // Check the result of the full stream
-    check_output("after zero fill stream");
-
-    // ************************************************************************
-    // Test Case 3: Normal Operation with DisContiguous Zero Fill
-    // ************************************************************************
-    tb_test_num  = tb_test_num + 1;
-    tb_test_case = "DisContiguous Zero Fill";
-    // Start out with inactive value and reset the DUT to isolate from prior tests
-    tb_serial_in = 1'b1;
-    reset_dut();
-
-    // Define the test data stream for this test case
-    tb_test_data = '{SR_SIZE_BITS{1'b0}};
-
-    // Bootstrap the expected output signal
-    tb_expected_ouput = RESET_OUTPUT_VALUE;
-
-    // Disconiguously stream out all of the bits in the provided input vector
-    for(tb_bit_num = 0; tb_bit_num < tb_test_data.size(); tb_bit_num++) begin
-      // Send the current bit
-      send_bit(tb_test_data[tb_bit_num]);
-      // Update expected output value
-      tb_expected_ouput = {tb_expected_ouput[(SR_MAX_BIT-1):0], 1'b0};
-
-      // Check that the current bit got pulled in
-      $sformat(tb_stream_check_tag, "for bit %0d", tb_bit_num);
-      check_output(tb_stream_check_tag);
-
-      // Keep the value the same but leave shift enable off for at least a cycle
-      // Note: The send bit task already turns off the enable before finishing
-      //       -> Just wait for another clock cycle to pass before looping
-      @(posedge tb_clk);
-      $sformat(tb_stream_check_tag, "after bit %0d's pause", tb_bit_num);
-      check_output(tb_stream_check_tag);
-
-      // Add some spacing between the check and the start of the next bit
-      #(0.25 * CLK_PERIOD);
-    end
-
-    // STUDENT TODO: Add more test cases here
-    
+    check_packet("after zero fill stream");
+    check_stop("after zero fill stream");
   end
 endmodule
   
