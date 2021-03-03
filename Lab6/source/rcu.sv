@@ -20,6 +20,7 @@ module rcu
 );
 
 logic [3:0] state, next_state;
+logic clear, enable, buffer, timer;
 
 // State register
 always_ff @ (posedge clk, negedge n_rst)
@@ -42,7 +43,7 @@ always_comb begin
         next_state = 3'b001;
     end
     3'b001: begin
-      next_state == 3'b010;
+      next_state = 3'b010;
     end
     3'b010: begin
       if (packet_done == 1)
@@ -62,27 +63,32 @@ end
 
 // Output logic
 always_comb begin
-  sbc_clear = 0; // default
-  sbc_enable = 0; // default
-  load_buffer = 0; // default
-  enable_timer = 0; // default
+  clear = 0; // default
+  enable = 0; // default
+  buffer = 0; // default
+  timer = 0; // default
 
   case (state)
     3'b001: begin
-      sbc_clear = 1;
-      enable_timer = 1;
+      clear = 1;
+      timer = 1;
     end
     3'b010: begin
-      enable_timer = 1;
+      timer = 1;
     end
     3'b011: begin
-      sbc_enable = 1;
+      enable = 1;
     end
     3'b100: begin
-      load_buffer = 1;
+      buffer = 1;
     end
   endcase
 end
+
+assign sbc_clear = clear;
+assign sbc_enable = enable;
+assign load_buffer = buffer;
+assign enable_timer = timer;
   
 endmodule
 

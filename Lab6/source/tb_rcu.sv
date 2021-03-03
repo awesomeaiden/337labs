@@ -20,9 +20,6 @@ module tb_rcu();
   integer tb_test_num;
   string  tb_test_case;
   string  tb_stream_check_tag;
-  int     tb_bit_num;
-  logic   tb_mismatch;
-  logic   tb_check;
 
   // Declare DUT Connection Signals
   logic tb_clk;
@@ -207,7 +204,7 @@ module tb_rcu();
     check_timer(1, "after transition to state 2");
     @(posedge tb_clk);
     @(posedge tb_clk);
-    @(posedge tb_clk):
+    @(posedge tb_clk);
     check_timer(1, "after transition to state 2");
     @(negedge tb_clk);
     tb_packet_done = 1'b1;
@@ -254,7 +251,7 @@ module tb_rcu();
     check_timer(1, "after transition to state 2");
     @(posedge tb_clk);
     @(posedge tb_clk);
-    @(posedge tb_clk):
+    @(posedge tb_clk);
     check_timer(1, "after transition to state 2");
     @(negedge tb_clk);
     tb_packet_done = 1'b1;
@@ -264,16 +261,11 @@ module tb_rcu();
     check_enable(1, "after transition to state 3");
     tb_framing_error = 1'b1;
     @(posedge tb_clk);
-    @(negedge tb_clk); // transitioned to state 4 (load data)
-    check_enable(0, "after transition to state 4");
-    check_buffer(1, "after transition to state 4");
-    @(posedge tb_clk);
-    @(negedge tb_clk); // transitioned back to idle state
+    @(negedge tb_clk); // transitioned to state 4 (idle)
     check_clear(0, "after transition to idle state");
     check_enable(0, "after transition to idle state");
     check_buffer(0, "after transition to idle state");
     check_timer(0, "after transition to idle state");
-    
   end
 endmodule
   

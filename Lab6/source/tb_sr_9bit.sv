@@ -1,21 +1,21 @@
 // $Id: $
-// File name:   tb_stp_sr_4_msb.sv
-// Created:     9/14/2018
-// Author:      Tim Pritchett
-// Lab Section: 9999
+// File name:   tb_sr_9bit.sv
+// Created:     3/3/2021
+// Author:      Aiden Gonzalez
+// Lab Section: 337-02
 // Version:     1.0  Initial Design Entry
-// Description: Test bench for the default settings versions of Flex STP SR
+// Description: Test bench for the sr_9bit
 
 `timescale 1ns / 10ps
 
-module tb_stp_sr_4_msb();
+module tb_sr_9bit();
   // Define parameters
   // Common parameters
   localparam CLK_PERIOD        = 2.5;
   localparam PROPAGATION_DELAY = 0.8; // Allow for 800 ps for FF propagation delay
 
   localparam  INACTIVE_VALUE     = 1'b1;
-  localparam  SR_SIZE_BITS       = 4;
+  localparam  SR_SIZE_BITS       = 9;
   localparam  SR_MAX_BIT         = SR_SIZE_BITS - 1;
   localparam  RESET_OUTPUT_VALUE = {SR_SIZE_BITS{1'b1}};
 
@@ -28,15 +28,17 @@ module tb_stp_sr_4_msb();
   logic   tb_check;
 
   // Declare the Test Bench Signals for Expected Results
-  logic [SR_MAX_BIT:0] tb_expected_ouput;
+  logic [(SR_MAX_BIT - 1):0] tb_expected_output;
+  logic tb_expected_stop;
   logic tb_test_data [];
 
   // Declare DUT Connection Signals
   logic                tb_clk;
   logic                tb_n_rst;
-  logic                tb_shift_enable;
+  logic                tb_shift_strobe;
   logic                tb_serial_in;
-  logic [SR_MAX_BIT:0] tb_parallel_out;
+  logic [(SR_MAX_BIT - 1):0] tb_packet_data;
+  logic                stop_bit;
 
 // Task for standard DUT reset procedure
   task reset_dut;
@@ -125,7 +127,7 @@ module tb_stp_sr_4_msb();
   end
 
   // DUT Portmap
-  stp_sr_4_msb DUT (.clk(tb_clk), .n_rst(tb_n_rst), 
+  sr_9bit DUT (.clk(tb_clk), .n_rst(tb_n_rst), 
                     .serial_in(tb_serial_in), 
                     .shift_enable(tb_shift_enable), 
                     .parallel_out(tb_parallel_out));
