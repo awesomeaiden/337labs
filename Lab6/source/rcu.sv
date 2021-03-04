@@ -50,12 +50,16 @@ always_comb begin
         next_state = 3'b011;
     end
     3'b011: begin
-      if (framing_error == 1)
-        next_state = 3'b000;
-      else
-        next_state = 3'b100;
+      next_state = 3'b100;
     end
     3'b100: begin
+      if (framing_error == 1) begin
+        next_state = 3'b000;
+      end else begin
+        next_state = 3'b101;
+      end
+    end
+    3'b101: begin
       next_state = 3'b000;
     end
   endcase  
@@ -80,6 +84,9 @@ always_comb begin
       enable = 1;
     end
     3'b100: begin
+      enable = 1;
+    end
+    3'b101: begin
       buffer = 1;
     end
   endcase
