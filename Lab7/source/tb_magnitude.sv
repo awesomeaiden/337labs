@@ -11,7 +11,7 @@
 module tb_magnitude();
 
   // Define local parameters used by the test bench
-  localparam  CLK_PERIOD    = 2.5;
+  localparam  CLK_PERIOD    = 10;
   localparam  NUM_IN_BITS = 4;
   
   // Declare DUT portmap signals
