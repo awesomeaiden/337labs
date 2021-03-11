@@ -1,0 +1,29 @@
+What is the minimum amount of time that data_ready must remain asserted to ensure correct operation?
+
+- data_ready must be steady for at least two clock cycles to ensure correct operation, otherwise the filter will indicate an error and will not continue with the calculation.
+
+What is the minimum amount of time, in clock cycles, that data must remain valid after data_ready is asserted in order to ensure correct operation?
+(You may assume that all setup and hold times, as well as anypropagation delays, are negligible)
+
+- the data must be steady for two clock cycles after data_ready is asserted, as the filter needs to respond to the input and then store the inputted data into a register.  This process takes two clock cycles overall.
+
+How are the image files different?  Does this make sense given the filter design built in the lab?  Why or why not?
+
+- the outputted image is much darker and mainly just shows the edges in the images.  This makes sense because the filter we designed cancels out steady streams of signals but emphasizes changing streams of signals.  Where there is constant darkness or brightness, the filter evens it all out to darkness.  But where there is a change, the equation is unbalanced and it lets this change show through.
+
+What is the general syntax for each of the file IO functions used in the provided test bench (tb_fir_filter_image.sv)?
+
+- very similar to C, looks like this:
+
+- in_file = $fopen(filename, "read/write mode");
+- byte = $fscanf(in_file, "%format", where_to_store);
+
+- for seeking in a file:
+
+- $fseek(in_file, pointer, SEEK_(point you are seeking));
+
+- those are the general functions used for file i/o
+
+What are the different format specifiers available for use in file functions like $fscanf()?
+
+- %c for character, %d for integer, %f for float, etc.
