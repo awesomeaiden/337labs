@@ -1,5 +1,5 @@
 // $Id: $
-// File name:   tb_timer.sv
+// File name:   tb_counter.sv
 // Created:     3/10/2021
 // Author:      Aiden Gonzalez
 // Lab Section: 337-02
@@ -8,7 +8,7 @@
 
 `timescale 1ns / 10ps
 
-module tb_timer();
+module tb_counter();
 
   // Define local parameters used by the test bench
   localparam  CLK_PERIOD    = 10;
@@ -93,7 +93,7 @@ module tb_timer();
   end
   
   // DUT Port map
-  timer DUT(
+  counter DUT(
     .clk(tb_clk), .n_rst(tb_n_rst), .cnt_up(tb_cnt_up), .clear(tb_clear), 
     .cnt(tb_cnt), .one_k_samples(tb_one_k_samples));
   

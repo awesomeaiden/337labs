@@ -6,7 +6,7 @@
 // Version:     1.0  Initial Design Entry
 // Description: Counter for FIR filter
 
-module timer
+module counter
 (
   input wire clk,
   input wire n_rst,

@@ -1,19 +1,17 @@
 // $Id: $
-// File name:   tb_rcu.sv
-// Created:     2/24/2021
+// File name:   tb_controller.sv
+// Created:     3/10/2021
 // Author:      Aiden Gonzalez
 // Lab Section: 337-02
 // Version:     1.0  Initial Design Entry
-// Description: Test bench for the rcu
+// Description: Test bench for the controller
 
 `timescale 1ns / 10ps
 
-module tb_rcu();
+module tb_controller();
   // Define parameters
   // Common parameters
-  localparam CLK_PERIOD        = 2.5;
-  localparam PROPAGATION_DELAY = 0.8; // Allow for 800 ps for FF propagation delay
-  localparam  INACTIVE_VALUE     = 1'b0;
+  localparam CLK_PERIOD        = 10;
   localparam RESET_OUTPUT_VALUE  = 1'b0;
 
   // Declare Test Case Signals
@@ -24,13 +22,16 @@ module tb_rcu();
   // Declare DUT Connection Signals
   logic tb_clk;
   logic tb_n_rst;
-  logic tb_start_bit_detected;
-  logic tb_packet_done;
-  logic tb_framing_error;
-  logic tb_sbc_clear;
-  logic tb_sbc_enable;
-  logic tb_load_buffer;
-  logic tb_enable_timer;
+  logic tb_dr;
+  logic tb_lc;
+  logic tb_overflow;
+  logic tb_cnt_up, tb_expected_cnt_up;
+  logic tb_clear, tb_expected_clear;
+  logic tb_modwait, tb_expected_modwait;
+  logic [2:0] tb_op, tb_expected_op;
+  logic [3:0] tb_src1, tb_expected_src1, tb_src2, tb_expected_src2, tb_dest, tb_expected_dest;
+  logic tb_err, tb_expected_err;
+  logic [4:0] tb_state_out;
 
 // Task for standard DUT reset procedure
   task reset_dut;
@@ -54,58 +55,71 @@ module tb_rcu();
   end
   endtask
 
-  // Task to cleanly and consistently check DUT sbc_clear
-  task check_clear;
-    input logic  expected_val;
-    input string check_tag;
+  // Task for resetting expected values
+  task reset_expected;
   begin
-    if(expected_val == tb_sbc_clear) begin // Check passed
-      $info("Correct sbc clear %s during %s test case", check_tag, tb_test_case);
-    end
-    else begin // Check failed
-      $error("Incorrect sbc clear %s during %s test case", check_tag, tb_test_case);
-    end
+    tb_expected_cnt_up = 1'b0;
+    tb_expected_clear = 1'b0;
+    tb_expected_modwait = 1'b0;
+    tb_expected_op = 3'b000;
+    tb_expected_src1 = 4'b0000;
+    tb_expected_src2 = 4'b0000;
+    tb_expected_dest = 4'b0000;
+    tb_expected_err = 1'b0;
   end
   endtask
 
-  // Task to cleanly and consistently check DUT sbc_enable
-  task check_enable;
-    input logic  expected_val;
+  // Task to cleanly and consistently check DUT outputs
+  task check_outputs;
     input string check_tag;
   begin
-    if(expected_val == tb_sbc_enable) begin // Check passed
-      $info("Correct sbc enable %s during %s test case", check_tag, tb_test_case);
+    if(tb_expected_cnt_up == tb_cnt_up) begin // Check passed
+      //$info("Correct cnt_up %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
-      $error("Incorrect sbc enable %s during %s test case", check_tag, tb_test_case);
+      $error("Incorrect cnt_up %s during %s test case", check_tag, tb_test_case);
     end
-  end
-  endtask
-
-  // Task to cleanly and consistently check DUT load_buffer
-  task check_buffer;
-    input logic  expected_val;
-    input string check_tag;
-  begin
-    if(expected_val == tb_load_buffer) begin // Check passed
-      $info("Correct load buffer %s during %s test case", check_tag, tb_test_case);
+    if(tb_expected_clear == tb_clear) begin // Check passed
+      //$info("Correct clear %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
-      $error("Incorrect load buffer %s during %s test case", check_tag, tb_test_case);
+      $error("Incorrect clear %s during %s test case", check_tag, tb_test_case);
     end
-  end
-  endtask
-
-  // Task to cleanly and consistently check DUT enable_timer
-  task check_timer;
-    input logic  expected_val;
-    input string check_tag;
-  begin
-    if(expected_val == tb_enable_timer) begin // Check passed
-      $info("Correct enable timer %s during %s test case", check_tag, tb_test_case);
+    if(tb_expected_modwait == tb_modwait) begin // Check passed
+      //$info("Correct modwait %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
-      $error("Incorrect enable timer %s during %s test case", check_tag, tb_test_case);
+      $error("Incorrect modwait %s during %s test case", check_tag, tb_test_case);
+    end
+    if(tb_expected_op == tb_op) begin // Check passed
+      //$info("Correct op %s during %s test case", check_tag, tb_test_case);
+    end
+    else begin // Check failed
+      $error("Incorrect op %s during %s test case", check_tag, tb_test_case);
+    end
+    if(tb_expected_src1 == tb_src1) begin // Check passed
+      //$info("Correct src1 %s during %s test case", check_tag, tb_test_case);
+    end
+    else begin // Check failed
+      $error("Incorrect src1 %s during %s test case", check_tag, tb_test_case);
+    end
+    if(tb_expected_src2 == tb_src2) begin // Check passed
+      //$info("Correct src2 %s during %s test case", check_tag, tb_test_case);
+    end
+    else begin // Check failed
+      $error("Incorrect src2 %s during %s test case", check_tag, tb_test_case);
+    end
+    if(tb_expected_dest == tb_dest) begin // Check passed
+      //$info("Correct dest %s during %s test case", check_tag, tb_test_case);
+    end
+    else begin // Check failed
+      $error("Incorrect dest %s during %s test case", check_tag, tb_test_case);
+    end
+    if(tb_expected_err == tb_err) begin // Check passed
+      //$info("Correct err %s during %s test case", check_tag, tb_test_case);
+    end
+    else begin // Check failed
+      $error("Incorrect err %s during %s test case", check_tag, tb_test_case);
     end
   end
   endtask
@@ -122,24 +136,29 @@ module tb_rcu();
   end
 
   // DUT Portmap
-  rcu DUT (.clk(tb_clk), 
+  controller DUT (.clk(tb_clk), 
            .n_rst(tb_n_rst), 
-           .start_bit_detected(tb_start_bit_detected),
-           .packet_done(tb_packet_done),
-           .framing_error(tb_framing_error),
-           .sbc_clear(tb_sbc_clear),
-           .sbc_enable(tb_sbc_enable),
-           .load_buffer(tb_load_buffer),
-           .enable_timer(tb_enable_timer));
+           .dr(tb_dr),
+           .lc(tb_lc),
+           .overflow(tb_overflow),
+           .cnt_up(tb_cnt_up),
+           .clear(tb_clear),
+           .modwait(tb_modwait),
+           .op(tb_op),
+           .src1(tb_src1),
+           .src2(tb_src2),
+           .dest(tb_dest),
+           .err(tb_err),
+           .state_out(tb_state_out));
 
 
   // Test bench main process
   initial begin
     // Initialize all of the test inputs
     tb_n_rst            = 1'b1; // Initialize to be inactive
-    tb_start_bit_detected = 1'b0; // Initialize to inactive value
-    tb_packet_done = 1'b0; // Initialize to inactive value
-    tb_framing_error = 1'b0; // Initialize to inactive value
+    tb_dr               = 1'b0; // Initialize to be inactive
+    tb_lc               = 1'b0; // Initialize to be inactive
+    tb_overflow         = 1'b0; // Initialize to be inactive    
     tb_test_num         = 0;    // Initialize test case counter
     tb_test_case        = "Test bench initializaton";
 
@@ -151,6 +170,10 @@ module tb_rcu();
     // ************************************************************************
     tb_test_num  = tb_test_num + 1;
     tb_test_case = "Power on Reset";
+
+    // Initialize expected values
+    reset_expected();
+
     // Note: Do not use reset task during reset test case since we need to specifically check behavior during reset
     // Wait some time before applying test case stimulus
     #(0.1);
@@ -161,111 +184,381 @@ module tb_rcu();
     #(CLK_PERIOD * 0.5);
 
     // Check that internal state was correctly reset
-    check_clear(0, "after reset applied");
-    check_enable(0, "after reset applied");
-    check_buffer(0, "after reset applied");
-    check_timer(0, "after reset applied");
+    check_outputs("after reset applied");
 
     // Check that the reset value is maintained during a clock cycle
     #(CLK_PERIOD);
-    check_clear(0, "after clock cycle while in reset");
-    check_enable(0, "after clock cycle while in reset");
-    check_buffer(0, "after clock cycle while in reset");
-    check_timer(0, "after clock cycle while in reset");
+    check_outputs("after clock cycle while in reset");
     
     // Release the reset away from a clock edge
     @(negedge tb_clk);
     tb_n_rst  = 1'b1;   // Deactivate the chip reset
 
     // ************************************************************************
-    // Test Case 2: Normal Operation (Full sequence)
+    // Test Case 2: Normal FIR operation (Full sequence)
     // ************************************************************************
     tb_test_num  = tb_test_num + 1;
-    tb_test_case = "Normal Operation";
+    tb_test_case = "Normal FIR Operation";
     // Start out with inactive values and reset the DUT to isolate from prior tests
-    tb_start_bit_detected = 1'b0; // Initialize to inactive value
-    tb_packet_done = 1'b0; // Initialize to inactive value
-    tb_framing_error = 1'b0; // Initialize to inactive value
+    tb_n_rst            = 1'b1; // Initialize to be inactive
+    tb_dr               = 1'b0; // Initialize to be inactive
+    tb_lc               = 1'b0; // Initialize to be inactive
+    tb_overflow         = 1'b0; // Initialize to be inactive
     reset_dut();
 
     // DUT in idle state (0)
 
-    // Assert input to transition to state 1
+    // Initialize expected values
+    reset_expected();
+
+    // Assert dr to transition to state 1
     @(negedge tb_clk);
-    tb_start_bit_detected = 1'b1;
+    tb_dr = 1'b1;
     @(posedge tb_clk);
     @(negedge tb_clk);
-    tb_start_bit_detected = 1'b0;
-    check_clear(1, "after transition to state 1");
-    check_timer(1, "after transition to state 1");
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b010;
+    tb_expected_dest = 4'b0101;
+    check_outputs("after transition to state 1 (Store sample)");
     @(posedge tb_clk);
     @(negedge tb_clk); // transitioned to state 2
-    check_clear(0, "after transition to state 2");
-    check_timer(1, "after transition to state 2");
+    tb_dr = 1'b0;
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_cnt_up = 1'b1;
+    tb_expected_op = 3'b101;
+    check_outputs("after transition to state 2");
     @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 3
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b001;
+    tb_expected_dest = 4'b0001;
+    tb_expected_src1 = 4'b0010;
+    check_outputs("after transition to state 3");
     @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 4
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b001;
+    tb_expected_dest = 4'b0010;
+    tb_expected_src1 = 4'b0011;
+    check_outputs("after transition to state 4");
     @(posedge tb_clk);
-    check_timer(1, "after transition to state 2");
-    @(negedge tb_clk);
-    tb_packet_done = 1'b1;
+    @(negedge tb_clk); // transitioned to state 5
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b001;
+    tb_expected_dest = 4'b0011;
+    tb_expected_src1 = 4'b0100;
+    check_outputs("after transition to state 5");
     @(posedge tb_clk);
-    @(negedge tb_clk); // transitioned to state 3 (stop bit check)
-    check_timer(0, "after transition to state 3");
-    check_enable(1, "after transition to state 3");
+    @(negedge tb_clk); // transitioned to state 6
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b001;
+    tb_expected_dest = 4'b0100;
+    tb_expected_src1 = 4'b0101;
+    check_outputs("after transition to state 6");
     @(posedge tb_clk);
-    @(negedge tb_clk); // transitioned to state 4 (load data)
-    check_enable(0, "after transition to state 4");
-    check_buffer(1, "after transition to state 4");
+    @(negedge tb_clk); // transitioned to state 7
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b110;
+    tb_expected_dest = 4'b1010;
+    tb_expected_src1 = 4'b0001;
+    tb_expected_src2 = 4'b0110;
+    check_outputs("after transition to state 7");
     @(posedge tb_clk);
-    @(negedge tb_clk); // transitioned back to idle state
-    check_clear(0, "after transition to idle state");
-    check_enable(0, "after transition to idle state");
-    check_buffer(0, "after transition to idle state");
-    check_timer(0, "after transition to idle state");
-
+    @(negedge tb_clk); // transitioned to state 8
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b100;
+    tb_expected_src2 = 4'b0110;
+    check_outputs("after transition to state 8");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 9
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b110;
+    tb_expected_dest = 4'b1010;
+    tb_expected_src1 = 4'b0010;
+    tb_expected_src2 = 4'b0111;
+    check_outputs("after transition to state 9");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 10
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b101;
+    tb_expected_src2 = 4'b1010;
+    check_outputs("after transition to state 10");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 11
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b110;
+    tb_expected_dest = 4'b1010;
+    tb_expected_src1 = 4'b0011;
+    tb_expected_src2 = 4'b1000;
+    check_outputs("after transition to state 11");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 12
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b100;
+    tb_expected_src2 = 4'b1010;
+    check_outputs("after transition to state 12");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 13
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b110;
+    tb_expected_dest = 4'b1010;
+    tb_expected_src1 = 4'b0100;
+    tb_expected_src2 = 4'b1001;
+    check_outputs("after transition to state 13");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 14
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b101;
+    tb_expected_src2 = 4'b1010;
+    check_outputs("after transition to state 14");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 15
+    reset_expected();
+    check_outputs("after transition to state 15");
 
     // ************************************************************************
-    // Test Case 3: Normal Operation with framing error
+    // Test Case 3: Normal LC Operation
     // ************************************************************************
     tb_test_num  = tb_test_num + 1;
-    tb_test_case = "Normal Operation with framing error";
+    tb_test_case = "Normal LC Operation";
     // Start out with inactive values and reset the DUT to isolate from prior tests
-    tb_start_bit_detected = 1'b0; // Initialize to inactive value
-    tb_packet_done = 1'b0; // Initialize to inactive value
-    tb_framing_error = 1'b0; // Initialize to inactive value
+    tb_n_rst            = 1'b1; // Initialize to be inactive
+    tb_dr               = 1'b0; // Initialize to be inactive
+    tb_lc               = 1'b0; // Initialize to be inactive
+    tb_overflow         = 1'b0; // Initialize to be inactive
     reset_dut();
 
     // DUT in idle state (0)
 
-    // Assert input to transition to state 1
+    // Initialize expected values
+    reset_expected();
+
+    // Assert dr to transition to state 16
     @(negedge tb_clk);
-    tb_start_bit_detected = 1'b1;
+    tb_lc = 1'b1;
     @(posedge tb_clk);
     @(negedge tb_clk);
-    tb_start_bit_detected = 1'b0;
-    check_clear(1, "after transition to state 1");
-    check_timer(1, "after transition to state 1");
+    tb_expected_modwait = 1'b1;
+    tb_expected_clear = 1'b1;
+    tb_expected_op = 3'b011;
+    tb_expected_dest = 4'b1001;
+    check_outputs("after transition to state 16 (Load F0)");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 17
+    reset_expected();
+    check_outputs("after transition to state 17");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 18
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b011;
+    tb_expected_dest = 4'b1000;
+    check_outputs("after transition to state 18");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 19
+    reset_expected();
+    check_outputs("after transition to state 19");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 20
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b011;
+    tb_expected_dest = 4'b0111;
+    check_outputs("after transition to state 20");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 21
+    reset_expected();
+    check_outputs("after transition to state 21");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 22
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b011;
+    tb_expected_dest = 4'b0110;
+    check_outputs("after transition to state 22");
+    tb_lc = 1'b0;
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 0
+    reset_expected();
+    check_outputs("after transition to state 0");
+
+    // ************************************************************************
+    // Test Case 4: Overflow FIR operation
+    // ************************************************************************
+    tb_test_num  = tb_test_num + 1;
+    tb_test_case = "Overflow FIR operation";
+    // Start out with inactive values and reset the DUT to isolate from prior tests
+    tb_n_rst            = 1'b1; // Initialize to be inactive
+    tb_dr               = 1'b0; // Initialize to be inactive
+    tb_lc               = 1'b0; // Initialize to be inactive
+    tb_overflow         = 1'b0; // Initialize to be inactive
+    reset_dut();
+
+    // DUT in idle state (0)
+
+    // Initialize expected values
+    reset_expected();
+
+    // Assert dr to transition to state 1
+    @(negedge tb_clk);
+    tb_dr = 1'b1;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b010;
+    tb_expected_dest = 4'b0101;
+    check_outputs("after transition to state 1 (Store sample)");
     @(posedge tb_clk);
     @(negedge tb_clk); // transitioned to state 2
-    check_clear(0, "after transition to state 2");
-    check_timer(1, "after transition to state 2");
+    tb_dr = 1'b0;
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_cnt_up = 1'b1;
+    tb_expected_op = 3'b101;
+    check_outputs("after transition to state 2");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 3
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b001;
+    tb_expected_dest = 4'b0001;
+    tb_expected_src1 = 4'b0010;
+    check_outputs("after transition to state 3");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 4
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b001;
+    tb_expected_dest = 4'b0010;
+    tb_expected_src1 = 4'b0011;
+    check_outputs("after transition to state 4");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 5
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b001;
+    tb_expected_dest = 4'b0011;
+    tb_expected_src1 = 4'b0100;
+    check_outputs("after transition to state 5");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 6
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b001;
+    tb_expected_dest = 4'b0100;
+    tb_expected_src1 = 4'b0101;
+    check_outputs("after transition to state 6");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 7
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b110;
+    tb_expected_dest = 4'b1010;
+    tb_expected_src1 = 4'b0001;
+    tb_expected_src2 = 4'b0110;
+    check_outputs("after transition to state 7");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 8
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b100;
+    tb_expected_src2 = 4'b0110;
+    check_outputs("after transition to state 8");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 9
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b110;
+    tb_expected_dest = 4'b1010;
+    tb_expected_src1 = 4'b0010;
+    tb_expected_src2 = 4'b0111;
+    check_outputs("after transition to state 9");
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 10
+    reset_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b101;
+    tb_expected_src2 = 4'b1010;
+    check_outputs("after transition to state 10");
+
+    // Now assert overflow
+    tb_overflow = 1'b1;
+
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 23
+    reset_expected();
+    tb_expected_err = 1'b1;
+    check_outputs("after transition to state 23");
+
+    // Deassert overflow
+    tb_overflow = 1'b0;
+
+    // DUT is now sitting in error idle state.  Should stay until dr = 1.
     @(posedge tb_clk);
     @(posedge tb_clk);
     @(posedge tb_clk);
-    check_timer(1, "after transition to state 2");
+    @(posedge tb_clk);
     @(negedge tb_clk);
-    tb_packet_done = 1'b1;
+    reset_expected();
+    
+    // Get back to normal cycle
+    tb_dr = 1'b1;
     @(posedge tb_clk);
-    @(negedge tb_clk); // transitioned to state 3 (stop bit check)
-    check_timer(0, "after transition to state 3");
-    check_enable(1, "after transition to state 3");
-    tb_framing_error = 1'b1;
+    @(negedge tb_clk); // transitioned to state 1
+    reset_expected();
+    tb_dr = 1'b0;
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b010;
+    tb_expected_dest = 4'b10101;
+    check_outputs("after transition back to state 1");
+
+    // ************************************************************************
+    // Test Case 5: Short DR Error
+    // ************************************************************************
+    tb_test_num  = tb_test_num + 1;
+    tb_test_case = "Short DR Error";
+    // Start out with inactive values and reset the DUT to isolate from prior tests
+    tb_n_rst            = 1'b1; // Initialize to be inactive
+    tb_dr               = 1'b0; // Initialize to be inactive
+    tb_lc               = 1'b0; // Initialize to be inactive
+    tb_overflow         = 1'b0; // Initialize to be inactive
+    reset_dut();
+
+    // DUT in idle state (0)
+
+    // Initialize expected values
+    reset_expected();
+
+    // Assert dr to transition to state 1
+    @(negedge tb_clk);
+    tb_dr = 1'b1;
     @(posedge tb_clk);
-    @(negedge tb_clk); // transitioned to state 4 (idle)
-    check_clear(0, "after transition to idle state");
-    check_enable(0, "after transition to idle state");
-    check_buffer(0, "after transition to idle state");
-    check_timer(0, "after transition to idle state");
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b1;
+    tb_expected_op = 3'b010;
+    tb_expected_dest = 4'b0101;
+    check_outputs("after transition to state 1 (Store sample)");
+
+    // Now deassert dr for erroneously short DR (should cause error condition)
+    tb_dr = 1'b0;
+    @(posedge tb_clk);
+    @(negedge tb_clk); // transitioned to state 23 (error)
+    reset_expected();
+    tb_expected_err = 1'b1;
+    check_outputs("after transition to state 23");
   end
 endmodule
   

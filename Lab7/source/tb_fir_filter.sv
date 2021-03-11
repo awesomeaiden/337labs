@@ -252,6 +252,13 @@ module tb_fir_filter();
 	begin // TODO: Add more standard test cases here
 		// Populate the test vector array to use
 		tb_test_vectors = new[2];
+
+                // Standard test vector population (Done separately for cleaner viewing)
+                // f3*sample4 - f2*sample3 + f1*sample2 - f0*sample1
+                // {F3, F2, F1, F0}
+                // {last sample, ..., first sample}
+                // {last result, ..., first result}
+                // {last error, ..., first error}
 		// Test case 0
 		tb_test_vectors[0].coeffs		= {{COEFF_5}, {COEFF1}, {COEFF1}, {COEFF_5}};
 		tb_test_vectors[0].samples	= {16'd100, 16'd100, 16'd100, 16'd100};
