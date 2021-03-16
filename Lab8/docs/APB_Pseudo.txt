@@ -1,0 +1,15 @@
+if (psel == 1'b1) begin
+  if (pwrite == 1'b1) begin // write operation
+    if (paddr == 3'b010 && penable == 1'b1) begin // bit_period[7:0]
+      write_select = 2'b01;
+    end else if (paddr == 3'b011 && penable == 1'b1) begin // bit_period[13:8]
+      write_select = 2'b10;
+    end else if (paddr == 3'b100 && penable == 1'b1) begin // data_size[3:0]
+      write_select = 2'b11;
+    end else if (penable == 1'b1) begin // writing to non-writable address
+      pslverr = 1'b1; // indicate error
+    end
+  end else begin // read operation
+    
+  end
+end
