@@ -30,9 +30,8 @@ localparam ADDR_DATA_CR  = 3'd4;
 localparam ADDR_RX_DATA  = 3'd6;
 
 // APB-Slave reset value constants
-// Student TODO: Update these based on the reset values for your config registers
-localparam RESET_BIT_PERIOD = '0;
-localparam RESET_DATA_SIZE  = '0;
+localparam RESET_BIT_PERIOD = 8'b00001010;
+localparam RESET_DATA_SIZE  = 8'b00001000;
 
 //*****************************************************************************
 // Declare TB Signals (Bus Model Controls)
@@ -392,9 +391,53 @@ initial begin
   // Run the read transactions via the model
   execute_transactions(2);
 
-  // Student TODO: Add more test cases here
+  //*****************************************************************************
+  // Test Case: Read RX Data
+  //*****************************************************************************
   // Update Navigation Info
-  tb_test_case     = "Need More Tests!";
+  tb_test_case     = "Read RX Data";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior to isolate from prior test case
+  reset_dut();
+
+  // Set all UART inputs back to inactive values
+  tb_rx_data        = '0;
+  tb_data_ready     = 1'b0;
+  tb_overrun_error  = 1'b0;
+  tb_framing_error  = 1'b0;
+  
+  // Enque the needed transactions (Overall period of 1000 clocks)
+  tb_rx_data = 8'b10100101;
+  // Enqueue the CR Read
+  enqueue_transaction(1'b1, 1'b0, ADDR_RX_DATA, tb_rx_data, 1'b0);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
+
+  // Check the DUT outputs
+  tb_expected_data_read  = 1'b1;
+  check_outputs("after reading rx_data");
+
+  //*****************************************************************************
+  // Test Case: Read Data Status
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "Read RX Data";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  //*****************************************************************************
+  // Test Case: UART Errors
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "Read RX Data";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  //*****************************************************************************
+  // Test Case: "Slave" Errors
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "Read RX Data";
   tb_test_case_num = tb_test_case_num + 1;
 
 end
