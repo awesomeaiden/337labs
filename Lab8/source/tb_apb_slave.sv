@@ -645,15 +645,44 @@ initial begin
   tb_expected_data_size  = RESET_DATA_SIZE;
 
   // Read from invalid address
+  // Enqueue the CR Read
+  // for_dut, write_mode, address, data, expected_error
+  enqueue_transaction(1'b1, 1'b0, ADDR_RX_DATA + 1, 8'b00000000, 1'b1);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
 
   // Write to invalid address
+  // Enqueue the CR Write
+  // for_dut, write_mode, address, data, expected_error
+  enqueue_transaction(1'b1, 1'b1, ADDR_RX_DATA + 1, 8'b00000001, 1'b1);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
 
   // Read from valid address
+  // Enqueue the CR Read
+  // for_dut, write_mode, address, data, expected_error
+  enqueue_transaction(1'b1, 1'b0, ADDR_RX_DATA, 8'b00000000, 1'b0);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
 
   // Read from invalid address again
+  // Enqueue the CR Read
+  // for_dut, write_mode, address, data, expected_error
+  enqueue_transaction(1'b1, 1'b0, ADDR_RX_DATA + 1, 8'b00000000, 1'b1);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
 
   // Write to valid address
-
+  // Enqueue the CR Write
+  // for_dut, write_mode, address, data, expected_error
+  enqueue_transaction(1'b1, 1'b1, ADDR_DATA_CR, 8'b00000001, 1'b0);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
 end
 
 endmodule

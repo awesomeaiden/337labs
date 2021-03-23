@@ -11,7 +11,7 @@
 module tb_rcv_block();
 
   // Define parameters
-  parameter CLK_PERIOD        = 2.5;
+  parameter CLK_PERIOD        = 10;
   parameter NORM_DATA_PERIOD  = (10 * CLK_PERIOD);
   
   localparam OUTPUT_CHECK_DELAY = (CLK_PERIOD - 0.2);
@@ -23,6 +23,8 @@ module tb_rcv_block();
   reg tb_n_rst;
   reg tb_serial_in;
   reg tb_data_read;
+  reg [3:0] tb_data_size;
+  reg [13:0] tb_bit_period;
   
   // DUT outputs
   wire [7:0] tb_rx_data;

@@ -38,7 +38,7 @@ always_comb begin
     if (SHIFT_MSB == 1) begin
       next_state = {state[(NUM_BITS - 2):0], serial_in};
     end else begin
-      next_state = {serial_in, state[(NUM_BITS - 1):1'b1]};
+      next_state = {serial_in, state[(NUM_BITS - 1):1]};
     end
   end
 end

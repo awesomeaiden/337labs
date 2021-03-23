@@ -1,15 +1,17 @@
 // $Id: $
 // File name:   rcv_block.sv
-// Created:     3/3/2021
+// Created:     3/23/2021
 // Author:      Aiden Gonzalez
 // Lab Section: 337-02
 // Version:     1.0  Initial Design Entry
-// Description: RCV Block
+// Description: RCV Block (Extended)
 
 module rcv_block
 (
 	input clk,
 	input n_rst,
+        input [3:0] data_size,
+        input [13:0] bit_period,
 	input serial_in,
 	input data_read,
 	output [7:0] rx_data,
@@ -45,6 +47,8 @@ module rcv_block
     .clk(clk),
     .n_rst(n_rst),
     .enable_timer(tim_en),
+    .bit_period(bit_period),
+    .data_size(data_size),
     .shift_enable(shift_str),
     .packet_done(packet_end)
   );
