@@ -44,10 +44,11 @@ always_ff @ (posedge clk, negedge n_rst) begin
   end
 end
 
-// Outreg
+// Outreg and d_read
 always_ff @ (posedge clk, negedge n_rst) begin
   if (n_rst == 1'b0) begin
     outreg <= 0;
+    d_read <= 0;
   end else begin
     outreg <= next_outreg;
     d_read <= next_d_read;
@@ -72,21 +73,21 @@ end
 // Bit period [7:0] configuration register
 always_comb begin
   next_array[2] = array[2]; // Default
-  if (psel == 1'b1 && pwrite == 1'b1 && penable == 1'b1 && paddr == 3'b010)
+  if (psel == 1'b1 && pwrite == 1'b1 && paddr == 3'b010)
     next_array[2] = pwdata;
 end
 
 // Bit period [13:8] configuration register
 always_comb begin
   next_array[3] = array[3]; // Default
-  if (psel == 1'b1 && pwrite == 1'b1 && penable == 1'b1 && paddr == 3'b011)
+  if (psel == 1'b1 && pwrite == 1'b1 && paddr == 3'b011)
     next_array[3] = {2'b00, pwdata[5:0]}; // fill excess with 0s
 end
 
 // Data Size [3:0] configuration register
 always_comb begin
   next_array[4] = array[4]; // Default
-  if (psel == 1'b1 && pwrite == 1'b1 && penable == 1'b1 && paddr == 3'b100)
+  if (psel == 1'b1 && pwrite == 1'b1 && paddr == 3'b100)
     next_array[4] = {4'b0000, pwdata[3:0]}; // fill excess with 0s
 end
 
@@ -95,7 +96,7 @@ always_comb begin
   next_d_read = 1'b0; // Default
   slv_err = 1'b0; // Default
   next_outreg = outreg; // Default
-  if (psel == 1'b1 && pwrite == 1'b0 && penable == 1'b1) begin
+  if (psel == 1'b1 && pwrite == 1'b0) begin
     if (paddr == 3'b000) begin
       next_outreg = array[0];
     end else if (paddr == 3'b001) begin
@@ -112,6 +113,10 @@ always_comb begin
     end else begin
       slv_err = 1'b1; // invalid address
     end
+  end
+
+  if (psel == 1'b1 && pwrite == 1'b1 && paddr != 3'b010 && paddr != 3'b011 && paddr != 3'b100) begin
+    slv_err = 1'b1; // invalid write address
   end
 end
 

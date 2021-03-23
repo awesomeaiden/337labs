@@ -307,7 +307,7 @@ initial begin
   reset_model();
 
   //*****************************************************************************
-  // Power-on-Reset Test Case
+  // Test Case: Power-on-Reset
   //*****************************************************************************
   // Update Navigation Info
   tb_test_case     = "Power-on-Reset";
@@ -335,14 +335,17 @@ initial begin
   tb_framing_error  = 1'b0;
 
   //*****************************************************************************
-  // Test Case: Configure the Bit Period Settings
+  // Test Case: Configure the Bit Period Settings (Write)
   //*****************************************************************************
   // Update Navigation Info
-  tb_test_case     = "Configure UART Bit Period Value";
+  tb_test_case     = "Configure the Bit Period Settings (Write)";
   tb_test_case_num = tb_test_case_num + 1;
 
   // Reset the DUT to isolate from prior to isolate from prior test case
   reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
 
   // Enque the needed transactions (Overall period of 10 clocks)
   tb_test_bit_period = 14'd10;
@@ -360,14 +363,17 @@ initial begin
 
 
   //*****************************************************************************
-  // Test Case: Configure the Bit Period Settings
+  // Test Case: Configure the Bit Period Settings (Read)
   //*****************************************************************************
   // Update Navigation Info
-  tb_test_case     = "Read from Bit Period Config Register after setting it";
+  tb_test_case     = "Configure the Bit Period Settings (Read)";
   tb_test_case_num = tb_test_case_num + 1;
 
   // Reset the DUT to isolate from prior to isolate from prior test case
   reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
   
   // Enque the needed transactions (Overall period of 1000 clocks)
   tb_test_bit_period = 14'd1000;
@@ -392,6 +398,59 @@ initial begin
   execute_transactions(2);
 
   //*****************************************************************************
+  // Test Case: Configure the Data Size Settings (Write)
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "Configure the Data Size Settings (Write)";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior to isolate from prior test case
+  reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
+
+  // Enque the needed transactions (Overall period of 10 clocks)
+  enqueue_transaction(1'b1, 1'b1, ADDR_DATA_CR, 4'b0111, 1'b0);
+
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // Check the DUT outputs
+  tb_expected_data_size  = 4'b0111;
+  check_outputs("after attempting to configure a 7-bit data size");
+
+
+  //*****************************************************************************
+  // Test Case: Configure the Data Size Settings (Read)
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "Configure the Data Size Settings (Read)";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior to isolate from prior test case
+  reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
+  
+  // Enque the needed transactions (Overall period of 10 clocks)
+  enqueue_transaction(1'b1, 1'b1, ADDR_DATA_CR, 4'b0111, 1'b0);
+
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // Check the DUT outputs
+  tb_expected_data_size  = 4'b0111;
+  check_outputs("after attempting to configure a 7-bit data size");
+
+  // Enqueue the CR Reads
+  enqueue_transaction(1'b1, 1'b0, ADDR_DATA_CR, 4'b0111, 1'b0);
+
+  // Run the read transactions via the model
+  execute_transactions(1);
+
+  //*****************************************************************************
   // Test Case: Read RX Data
   //*****************************************************************************
   // Update Navigation Info
@@ -400,6 +459,9 @@ initial begin
 
   // Reset the DUT to isolate from prior to isolate from prior test case
   reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
 
   // Set all UART inputs back to inactive values
   tb_rx_data        = '0;
@@ -420,25 +482,177 @@ initial begin
   check_outputs("after reading rx_data");
 
   //*****************************************************************************
+  // Test Case: Write RX Data (Error)
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "Write RX Data (Error)";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior to isolate from prior test case
+  reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
+
+  // Set all UART inputs back to inactive values
+  tb_rx_data        = '0;
+  tb_data_ready     = 1'b0;
+  tb_overrun_error  = 1'b0;
+  tb_framing_error  = 1'b0;
+
+  // Enque the needed transactions (Overall period of 1000 clocks)
+  tb_rx_data = 8'b10100101;
+  // Enqueue the CR Read
+  // for_dut, write_mode, address, data, expected_error
+  enqueue_transaction(1'b1, 1'b1, ADDR_RX_DATA, tb_rx_data, 1'b1);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
+
+  // Check DUT outputs?
+
+  //*****************************************************************************
   // Test Case: Read Data Status
   //*****************************************************************************
   // Update Navigation Info
-  tb_test_case     = "Read RX Data";
+  tb_test_case     = "Read Data Status";
   tb_test_case_num = tb_test_case_num + 1;
 
+  // Reset the DUT to isolate from prior to isolate from prior test case
+  reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
+
+  // Set all UART inputs back to inactive values
+  tb_rx_data        = '0;
+  tb_data_ready     = 1'b0;
+  tb_overrun_error  = 1'b0;
+  tb_framing_error  = 1'b0;
+
+  // Enqueue the CR Read
+  // for_dut, write_mode, address, data, expected_error
+  enqueue_transaction(1'b1, 1'b0, ADDR_DATA_SR, 1'b0, 1'b0);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
+
+  // Check DUT outputs?
+
+  // Now read when data is ready
+  tb_data_ready = 1'b1;
+  enqueue_transaction(1'b1, 1'b0, ADDR_DATA_SR, 1'b1, 1'b0);
+  execute_transactions(1);
+
   //*****************************************************************************
-  // Test Case: UART Errors
+  // Test Case: Write Data Status (Error)
   //*****************************************************************************
   // Update Navigation Info
-  tb_test_case     = "Read RX Data";
+  tb_test_case     = "Write Data Status (Error)";
   tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior to isolate from prior test case
+  reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
+
+  // Enqueue the CR Write
+  // for_dut, write_mode, address, data, expected_error
+  enqueue_transaction(1'b1, 1'b1, ADDR_DATA_SR, 1'b1, 1'b1);
+  execute_transactions(1);
+
+  // Check DUT outputs?
+
+  //*****************************************************************************
+  // Test Case: Read UART Errors
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "Read UART Errors";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior to isolate from prior test case
+  reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
+
+  // Set all UART inputs back to inactive values
+  tb_rx_data        = '0;
+  tb_data_ready     = 1'b0;
+  tb_overrun_error  = 1'b0;
+  tb_framing_error  = 1'b0;
+
+  // Enqueue the CR Read
+  // for_dut, write_mode, address, data, expected_error
+  enqueue_transaction(1'b1, 1'b0, ADDR_ERROR_SR, 2'b00, 1'b0);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
+
+  // Check DUT outputs?
+
+  // Now read when there is framing error
+  tb_framing_error = 1'b1;
+  enqueue_transaction(1'b1, 1'b0, ADDR_ERROR_SR, 2'b01, 1'b0);
+  execute_transactions(1);
+
+  // Now read when there is overrun error
+  tb_framing_error = 1'b0;
+  tb_overrun_error = 1'b1;
+  enqueue_transaction(1'b1, 1'b0, ADDR_ERROR_SR, 2'b10, 1'b0);
+  execute_transactions(1);
+
+  // Now read when there is both errors
+  tb_framing_error = 1'b1;
+  tb_overrun_error = 1'b1;
+  enqueue_transaction(1'b1, 1'b0, ADDR_ERROR_SR, 2'b01, 1'b0);
+  execute_transactions(1);
+
+  //*****************************************************************************
+  // Test Case: Write UART Errors (Error)
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "Write UART Errors (Error)";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior to isolate from prior test case
+  reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
+
+  // Enqueue the CR Write
+  // for_dut, write_mode, address, data, expected_error
+  enqueue_transaction(1'b1, 1'b1, ADDR_ERROR_SR, 2'b01, 1'b1);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
+
+  // Check DUT outputs?
 
   //*****************************************************************************
   // Test Case: "Slave" Errors
   //*****************************************************************************
   // Update Navigation Info
-  tb_test_case     = "Read RX Data";
+  tb_test_case     = "'Slave' Errors";
   tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior to isolate from prior test case
+  reset_dut();
+  tb_expected_data_read  = 1'b0;
+  tb_expected_bit_period = RESET_BIT_PERIOD;
+  tb_expected_data_size  = RESET_DATA_SIZE;
+
+  // Read from invalid address
+
+  // Write to invalid address
+
+  // Read from valid address
+
+  // Read from invalid address again
+
+  // Write to valid address
 
 end
 
