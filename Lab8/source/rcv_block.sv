@@ -23,6 +23,7 @@ module rcv_block
   wire shift_str, tim_en, start, stop, packet_end, frame_err;
   wire sbc_clr, sbc_en, ld_buff;
   wire [7:0] packet;
+  logic [7:0] padded_packet;
 
   // 9-bit Shift Register
   sr_9bit SHIFTR (
@@ -76,12 +77,21 @@ module rcv_block
     .framing_error(frame_err)
   );
 
+  always_comb begin
+    padded_packet = packet; // default
+    if (data_size == 4'b0111) begin
+      padded_packet = {1'b0, packet[6:0]};
+    end else if (data_size == 4'b0101) begin
+      padded_packet = {3'b000, packet[4:0]};
+    end
+  end
+
   // RX Data Buffer
   rx_data_buff RXBUFF (
     .clk(clk),
     .n_rst(n_rst),
     .load_buffer(ld_buff),
-    .packet_data(packet),
+    .packet_data(padded_packet),
     .data_read(data_read),
     .rx_data(rx_data),
     .data_ready(data_ready),

@@ -54,6 +54,8 @@ module tb_rcv_block();
     .n_rst(tb_n_rst),
     .serial_in(tb_serial_in),
     .data_read(tb_data_read),
+    .data_size(tb_data_size),
+    .bit_period(tb_bit_period),
     .rx_data(tb_rx_data),
     .data_ready(tb_data_ready),
     .overrun_error(tb_overrun_error),
@@ -77,6 +79,62 @@ module tb_rcv_block();
     
     // Send data bits
     for(i = 0; i < 8; i = i + 1)
+    begin
+      tb_serial_in = data[i];
+      #data_period;
+    end
+    
+    // Send stop bit
+    tb_serial_in = stop_bit;
+    #data_period;
+  end
+  endtask
+
+  // Tasks for regulating the timing of input stimulus to the design
+  task send_packet_7;
+    input  [6:0] data;
+    input  stop_bit;
+    input  time data_period;
+    
+    integer i;
+  begin
+    // First synchronize to away from clock's rising edge
+    @(negedge tb_clk)
+    
+    // Send start bit
+    tb_serial_in = 1'b0;
+    #data_period;
+    
+    // Send data bits
+    for(i = 0; i < 7; i = i + 1)
+    begin
+      tb_serial_in = data[i];
+      #data_period;
+    end
+    
+    // Send stop bit
+    tb_serial_in = stop_bit;
+    #data_period;
+  end
+  endtask
+
+  // Tasks for regulating the timing of input stimulus to the design
+  task send_packet_5;
+    input  [4:0] data;
+    input  stop_bit;
+    input  time data_period;
+    
+    integer i;
+  begin
+    // First synchronize to away from clock's rising edge
+    @(negedge tb_clk)
+    
+    // Send start bit
+    tb_serial_in = 1'b0;
+    #data_period;
+    
+    // Send data bits
+    for(i = 0; i < 5; i = i + 1)
     begin
       tb_serial_in = data[i];
       #data_period;
@@ -195,6 +253,8 @@ module tb_rcv_block();
     tb_n_rst      = 1'b1; // Initially inactive
     tb_serial_in  = 1'b1; // Initially idle
     tb_data_read  = 1'b0; // Initially inactive
+    tb_data_size  = 4'b1000; // Default value
+    tb_bit_period = 14'b00000000001010; // Default value
     
     // Get away from Time = 0
     #0.1; 
@@ -581,6 +641,192 @@ module tb_rcv_block();
     // Wait for 2 data periods to allow DUT to finish processing the packet
     #(tb_test_bit_period * 2);
 
+    // Check outputs
+    check_outputs(tb_test_data_read);
+
+    // Test case 7: Varying data size
+    // Synchronize to falling edge of clock to prevent timing shifts from prior test case(s)
+    @(negedge tb_clk);
+    tb_test_num  += 1;
+    tb_test_case = "Varying data size";
+    
+    // Setup packet info for debugging/verificaton signals
+    tb_data_size       = 4'b1000;
+    tb_test_data       = 8'b11010101;
+    tb_test_stop_bit   = 1'b1;
+    tb_test_bit_period = NORM_DATA_PERIOD;
+    tb_test_data_read  = 1'b1;
+    
+    // Define expected ouputs for this test case
+    // For a good packet RX Data value should match data sent
+    tb_expected_rx_data       = tb_test_data;
+    // Valid stop bit ('1') -> Valid data -> Active data ready output
+    tb_expected_data_ready    = tb_test_stop_bit; 
+    // Framing error if and only if bad stop_bit ('0') was sent
+    tb_expected_framing_error = ~tb_test_stop_bit;
+    // Not intentionally creating an overrun condition -> overrun should be 0
+    tb_expected_overrun       = 1'b0;
+    
+    // DUT Reset
+    reset_dut;
+    
+    // Send packet
+    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
+    
+    // Wait for 2 data periods to allow DUT to finish processing the packet
+    #(tb_test_bit_period * 2);
+    
+    // Check outputs
+    check_outputs(tb_test_data_read);
+
+    // Setup packet info for debugging/verificaton signals
+    tb_data_size       = 4'b0111;
+    tb_test_data       = 7'b1101010;
+    tb_test_stop_bit   = 1'b1;
+    tb_test_bit_period = NORM_DATA_PERIOD;
+    tb_test_data_read  = 1'b1;
+    
+    // Define expected ouputs for this test case
+    // For a good packet RX Data value should match data sent
+    tb_expected_rx_data       = tb_test_data;
+    // Valid stop bit ('1') -> Valid data -> Active data ready output
+    tb_expected_data_ready    = tb_test_stop_bit; 
+    // Framing error if and only if bad stop_bit ('0') was sent
+    tb_expected_framing_error = ~tb_test_stop_bit;
+    // Not intentionally creating an overrun condition -> overrun should be 0
+    tb_expected_overrun       = 1'b0;
+    
+    // DUT Reset
+    reset_dut;
+    
+    // Send packet
+    send_packet_7(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
+    
+    // Wait for 2 data periods to allow DUT to finish processing the packet
+    #(tb_test_bit_period * 2);
+    
+    // Check outputs
+    check_outputs(tb_test_data_read);
+
+    // Setup packet info for debugging/verificaton signals
+    tb_data_size       = 4'b0101;
+    tb_test_data       = 5'b11010;
+    tb_test_stop_bit   = 1'b1;
+    tb_test_bit_period = NORM_DATA_PERIOD;
+    tb_test_data_read  = 1'b1;
+    
+    // Define expected ouputs for this test case
+    // For a good packet RX Data value should match data sent
+    tb_expected_rx_data       = tb_test_data;
+    // Valid stop bit ('1') -> Valid data -> Active data ready output
+    tb_expected_data_ready    = tb_test_stop_bit; 
+    // Framing error if and only if bad stop_bit ('0') was sent
+    tb_expected_framing_error = ~tb_test_stop_bit;
+    // Not intentionally creating an overrun condition -> overrun should be 0
+    tb_expected_overrun       = 1'b0;
+    
+    // DUT Reset
+    reset_dut;
+    
+    // Send packet
+    send_packet_5(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
+    
+    // Wait for 2 data periods to allow DUT to finish processing the packet
+    #(tb_test_bit_period * 2);
+    
+    // Check outputs
+    check_outputs(tb_test_data_read);
+
+    // Test case 8: Varying bit period
+    // Synchronize to falling edge of clock to prevent timing shifts from prior test case(s)
+    @(negedge tb_clk);
+    tb_test_num  += 1;
+
+    tb_test_case = "Varying bit period";
+    
+    // Setup packet info for debugging/verificaton signals
+    tb_data_size       = 4'b1000;
+    tb_bit_period      = 14'b00000000001010; // standard
+    tb_test_data       = 8'b11010101;
+    tb_test_stop_bit   = 1'b1;
+    tb_test_bit_period = 10 * CLK_PERIOD;
+    tb_test_data_read  = 1'b1;
+    
+    // Define expected ouputs for this test case
+    // For a good packet RX Data value should match data sent
+    tb_expected_rx_data       = tb_test_data;
+    // Valid stop bit ('1') -> Valid data -> Active data ready output
+    tb_expected_data_ready    = tb_test_stop_bit; 
+    // Framing error if and only if bad stop_bit ('0') was sent
+    tb_expected_framing_error = ~tb_test_stop_bit;
+    // Not intentionally creating an overrun condition -> overrun should be 0
+    tb_expected_overrun       = 1'b0;
+    
+    // DUT Reset
+    reset_dut;
+    
+    // Send packet
+    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
+    
+    // Wait for 2 data periods to allow DUT to finish processing the packet
+    #(tb_test_bit_period * 2);
+    
+    // Check outputs
+    check_outputs(tb_test_data_read);
+
+    // Setup packet info for debugging/verificaton signals
+    tb_bit_period      = 14'b00000000011010; // higher
+    tb_test_stop_bit   = 1'b1;
+    tb_test_bit_period = 26 * CLK_PERIOD;
+    tb_test_data_read  = 1'b1;
+    
+    // Define expected ouputs for this test case
+    // For a good packet RX Data value should match data sent
+    tb_expected_rx_data       = tb_test_data;
+    // Valid stop bit ('1') -> Valid data -> Active data ready output
+    tb_expected_data_ready    = tb_test_stop_bit; 
+    // Framing error if and only if bad stop_bit ('0') was sent
+    tb_expected_framing_error = ~tb_test_stop_bit;
+    // Not intentionally creating an overrun condition -> overrun should be 0
+    tb_expected_overrun       = 1'b0;
+    
+    // DUT Reset
+    reset_dut;
+    
+    // Send packet
+    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
+    
+    // Wait for 2 data periods to allow DUT to finish processing the packet
+    #(tb_test_bit_period * 2);
+    
+    // Check outputs
+    check_outputs(tb_test_data_read);
+
+    // Setup packet info for debugging/verificaton signals
+    tb_bit_period      = 14'b00010000011010; // highest
+    tb_test_stop_bit   = 1'b1;
+    tb_test_bit_period = 1050 * CLK_PERIOD;
+    tb_test_data_read  = 1'b1;
+    
+    // Define expected ouputs for this test case
+    // For a good packet RX Data value should match data sent
+    tb_expected_rx_data       = tb_test_data;
+    // Valid stop bit ('1') -> Valid data -> Active data ready output
+    tb_expected_data_ready    = tb_test_stop_bit; 
+    // Framing error if and only if bad stop_bit ('0') was sent
+    tb_expected_framing_error = ~tb_test_stop_bit;
+    // Not intentionally creating an overrun condition -> overrun should be 0
+    tb_expected_overrun       = 1'b0;
+    
+    // DUT Reset
+    reset_dut;
+    
+    // Send packet
+    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
+    
+    // Wait for 2 data periods to allow DUT to finish processing the packet
+    #(tb_test_bit_period * 2);
+    
     // Check outputs
     check_outputs(tb_test_data_read);
     
