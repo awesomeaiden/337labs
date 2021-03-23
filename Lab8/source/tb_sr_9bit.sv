@@ -38,7 +38,6 @@ module tb_sr_9bit();
   logic                tb_n_rst;
   logic                tb_shift_strobe;
   logic                tb_serial_in;
-  logic [3:0]          tb_data_size;
   logic [(SR_MAX_BIT - 1):0] tb_packet_data;
   logic                tb_stop_bit;
 
@@ -150,8 +149,7 @@ module tb_sr_9bit();
   // DUT Portmap
   sr_9bit DUT (.clk(tb_clk), .n_rst(tb_n_rst), 
                     .serial_in(tb_serial_in), 
-                    .shift_strobe(tb_shift_strobe),
-                    .data_size(tb_data_size), 
+                    .shift_strobe(tb_shift_strobe), 
                     .packet_data(tb_packet_data),
                     .stop_bit(tb_stop_bit));
 
@@ -162,7 +160,6 @@ module tb_sr_9bit();
     tb_n_rst            = 1'b1; // Initialize to be inactive
     tb_serial_in        = 1'b1; // Initialize to inactive value
     tb_shift_strobe     = 1'b0; // Initialize to be inactive
-    tb_data_size        = 4'b1000; // Initialize to be default
     tb_test_num         = 0;    // Initialize test case counter
     tb_test_case        = "Test bench initializaton";
     tb_stream_check_tag = "N/A";
@@ -223,77 +220,6 @@ module tb_sr_9bit();
     // Check the result of the full stream
     check_packet("after zero fill stream");
     check_stop("after zero fill stream");
-
-    // ************************************************************************
-    // Test Case 3: Normal Operation with Contiguous Fill
-    // ************************************************************************
-    tb_test_num  = tb_test_num + 1;
-    tb_test_case = "Contiguous One Fill";
-    // Start out with inactive value and reset the DUT to isolate from prior tests
-    tb_serial_in = 1'b1;
-    reset_dut();
-
-    // Define the test data stream for this test case
-    tb_test_data = {1'b1, 1'b0, 1'b0, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 1'b1};
-
-    // Define the expected result
-    tb_expected_packet = {1'b1, 1'b0, 1'b0, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1};
-    tb_expected_stop = 1'b1;
-
-    // Contiguously stream enough zeros to fill the shift register
-    send_stream(tb_test_data);
-
-    // Check the result of the full stream
-    check_packet("after one fill stream");
-    check_stop("after one fill stream");
-
-    // ************************************************************************
-    // Test Case 4: Data Size 7 with Contiguous One Fill
-    // ************************************************************************
-    tb_test_num  = tb_test_num + 1;
-    tb_test_case = "Data Size 7 with Contiguous One Fill";
-    // Start out with inactive value and reset the DUT to isolate from prior tests
-    tb_serial_in = 1'b1;
-    tb_data_size = 4'b0111;
-    reset_dut();
-
-    // Define the test data stream for this test case
-    tb_test_data = {1'b1, 1'b0, 1'b0, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1};
-
-    // Define the expected result
-    tb_expected_packet = {1'b0, 1'b0, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 1'b0};
-    tb_expected_stop = 1'b1;
-
-    // Contiguously stream enough zeros to fill the shift register
-    send_stream(tb_test_data);
-
-    // Check the result of the full stream
-    check_packet("after data size 7 one fill stream");
-    check_stop("after data size 7 one fill stream");
-
-    // ************************************************************************
-    // Test Case 4: Data Size 5 with Contiguous One Fill
-    // ************************************************************************
-    tb_test_num  = tb_test_num + 1;
-    tb_test_case = "Data Size 5 with Contiguous One Fill";
-    // Start out with inactive value and reset the DUT to isolate from prior tests
-    tb_serial_in = 1'b1;
-    tb_data_size = 4'b0101;
-    reset_dut();
-
-    // Define the test data stream for this test case
-    tb_test_data = {1'b1, 1'b0, 1'b0, 1'b1, 1'b1, 1'b1};
-
-    // Define the expected result
-    tb_expected_packet = {1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 1'b0, 1'b0, 1'b0};
-    tb_expected_stop = 1'b1;
-
-    // Contiguously stream enough zeros to fill the shift register
-    send_stream(tb_test_data);
-
-    // Check the result of the full stream
-    check_packet("after data size 5 one fill stream");
-    check_stop("after data size 5 one fill stream");
   end
 endmodule
   
