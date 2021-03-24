@@ -252,30 +252,55 @@ end
 endtask
 
 // Tasks for regulating the timing of input stimulus to the design
-  task send_packet;
-    input  [7:0] data;
-    input  stop_bit;
-    integer i;
+task send_packet;
+  input  [7:0] data;
+  input  stop_bit;
+  integer i;
+begin
+  // First synchronize to away from clock's rising edge
+  @(negedge tb_clk)
+  
+  // Send start bit
+  tb_serial_in = 1'b0;
+  #NORM_DATA_PERIOD;
+  
+  // Send data bits
+  for(i = 0; i < 8; i = i + 1)
   begin
-    // First synchronize to away from clock's rising edge
-    @(negedge tb_clk)
-    
-    // Send start bit
-    tb_serial_in = 1'b0;
-    #NORM_DATA_PERIOD;
-    
-    // Send data bits
-    for(i = 0; i < 8; i = i + 1)
-    begin
-      tb_serial_in = data[i];
-      #NORM_DATA_PERIOD;
-    end
-    
-    // Send stop bit
-    tb_serial_in = stop_bit;
+    tb_serial_in = data[i];
     #NORM_DATA_PERIOD;
   end
-  endtask
+    
+  // Send stop bit
+  tb_serial_in = stop_bit;
+  #NORM_DATA_PERIOD;
+end
+endtask
+
+// Task for setting bit_period
+task set_bit_period;
+  input  [13:0] bit_period;
+begin
+  // Enque the needed writes
+  enqueue_transaction(1'b1, 1'b1, ADDR_BIT_CR0, bit_period[7:0], 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_BIT_CR1, {2'b00, bit_period[13:8]}, 1'b0);
+  
+  // Run the write transactions via the model
+  execute_transactions(2);
+end
+endtask
+
+// Task for setting data_size
+task set_data_size;
+  input  [3:0] data_size;
+begin
+  // Enque the needed write
+  enqueue_transaction(1'b1, 1'b1, ADDR_DATA_CR, {4'b0000, data_size}, 1'b0);
+  
+  // Run the write transactions via the model
+  execute_transactions(1);
+end
+endtask
 
 //*****************************************************************************
 //*****************************************************************************
