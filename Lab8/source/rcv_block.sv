@@ -80,9 +80,9 @@ module rcv_block
   always_comb begin
     padded_packet = packet; // default
     if (data_size == 4'b0111) begin
-      padded_packet = {1'b0, packet[6:0]};
+      padded_packet = {1'b0, packet[7:1]};
     end else if (data_size == 4'b0101) begin
-      padded_packet = {3'b000, packet[4:0]};
+      padded_packet = {3'b000, packet[7:3]};
     end
   end
 
