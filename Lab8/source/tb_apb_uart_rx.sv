@@ -412,13 +412,16 @@ initial begin
   #(tb_test_bit_period * 2);
 
   // Enque the needed transactions (Overall period of 10 clocks)
+  // Then read data status register to make sure it is cleared
   // for_dut, write_mode, address, data, expected_error
   enqueue_transaction(1'b1, 1'b0, ADDR_RX_DATA, tb_test_data, 1'b0);
+  enqueue_transaction(1'b1, 1'b0, ADDR_DATA_SR, 1'b0, 1'b0);
 
   // Run the transactions via the model
-  execute_transactions(1);
+  execute_transactions(2);
 
   // Check the DUT outputs
+  tb_expected_prdata = 8'b00000000;
   check_outputs("After reading from UART");
 
 end

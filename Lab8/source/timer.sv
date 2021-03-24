@@ -25,6 +25,12 @@ module timer
   assign shift_enable = CNT1_roll;
   assign tim_clr = packet_done;
 
+  logic [3:0] cnt2_roll;
+
+  always_comb begin
+    cnt2_roll = data_size + 1;
+  end
+
   flex_counter #(.NUM_CNT_BITS(14))
   CNT1 (
     .clk(clk),
@@ -41,7 +47,7 @@ module timer
     .clk(clk),
     .n_rst(n_rst),
     .count_enable(CNT1_roll),
-    .rollover_val(data_size + 1),
+    .rollover_val(cnt2_roll),
     .clear(tim_clr),
     .count_out(CNT2_out),
     .rollover_flag(packet_done)

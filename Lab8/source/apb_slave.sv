@@ -29,7 +29,7 @@ module apb_slave
 // Registers
 logic [7:0] array[4:0], next_array[4:0];
 logic [7:0] outreg, next_outreg;
-logic d_read, next_d_read, slv_err;
+logic d_read, slv_err;
 
 // Array
 always_ff @ (posedge clk, negedge n_rst) begin
@@ -44,14 +44,12 @@ always_ff @ (posedge clk, negedge n_rst) begin
   end
 end
 
-// Outreg and d_read
+// Outreg
 always_ff @ (posedge clk, negedge n_rst) begin
   if (n_rst == 1'b0) begin
     outreg <= 0;
-    d_read <= 0;
   end else begin
     outreg <= next_outreg;
-    d_read <= next_d_read;
   end
 end
 
@@ -93,7 +91,7 @@ end
 
 // Outreg, data_read, and pslverr
 always_comb begin
-  next_d_read = 1'b0; // Default
+  d_read = 1'b0; // Default
   slv_err = 1'b0; // Default
   next_outreg = outreg; // Default
   if (psel == 1'b1 && pwrite == 1'b0) begin
@@ -109,7 +107,7 @@ always_comb begin
       next_outreg = array[4];
     end else if (paddr == 3'b110) begin
       next_outreg = rx_data;
-      next_d_read = 1'b1; // indicate data has been read
+      d_read = 1'b1; // indicate data has been read
     end else begin
       slv_err = 1'b1; // invalid address
     end
