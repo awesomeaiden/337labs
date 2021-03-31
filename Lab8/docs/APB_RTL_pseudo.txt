@@ -1,0 +1,8 @@
+APB RTL Pseudocode:
+
+if (psel == 1'b1) begin // module selected for transaction
+  if (pwrite == 1'b1) begin // write transaction
+    if (addr == 3'b010 || addr == 3'b100) begin // valid address to write to
+    end
+  end
+end
