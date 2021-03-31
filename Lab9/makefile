@@ -1,6 +1,6 @@
 ##############################################################################
 # ECE 337 General Makefile
-# 
+#
 # Set tab spacing to 2 spaces per tab for best viewing results
 ##############################################################################
 
@@ -16,12 +16,12 @@ include /home/ecegrid/a/ece337/Course_Prod/course_make_vars
 # (do not include the source folder in the name)
 # NOTE: YOU WILL NEED TO SET THIS VARIABLE'S VALUE WHEN WORKING WITH HEIRARCHICAL DESIGNS
 # AND THE AUTOMATED GRADING SYSTEM
-COMPONENT_FILES	:= 
+COMPONENT_FILES	:=
 
 # Specify the name of the top level file (do not include the source folder in the name)
 # NOTE: YOU WILL NEED TO SET THIS VARIABLE'S VALUE WHEN WORKING WITH HEIRARCHICAL DESIGNS
 # AND THE AUTOMATED GRADING SYSTEM
-TOP_LEVEL_FILE	:= 
+TOP_LEVEL_FILE	:= coefficient_loader.sv
 
 # Specify the filepath of the test bench you want to use (ie. tb_top_level.sv)
 # (do not include the source folder in the name)
@@ -29,7 +29,7 @@ TEST_BENCH	:= tb_$(TOP_LEVEL_FILE)
 
 # Fill in the names of any test bench helper code files (code files referenced by your testbenches
 # other than the actual design files)( do not include the 'source/')
-TB_HELPER_FILES	:= 
+TB_HELPER_FILES	:=
 
 # Get the top level design and test_bench module names
 TB_MODULE		:= $(notdir $(basename $(TEST_BENCH)))
@@ -103,7 +103,7 @@ help:
 	@echo "  tbsim_%_mapped    - compiles and simulates the mapped version"
 	@echo "                      of an individual file with basename %"
 	@echo "                      with its testbench"
-	@echo 
+	@echo
 	@echo "Synthesis targets:"
 	@echo "  mapped/%.v - synthesizes the mapped version of an individual file"
 	@echo "               additionally the DEP_SUB_FILES variabl can be used "
@@ -210,7 +210,7 @@ endef
 sim_full_source: $(addprefix $(S_WORK_LIB)/, $(notdir $(basename $(TOP_LEVEL_FILE) $(TEST_BENCH) $(TB_HELPER_FILES) $(COMPONENT_FILES))))
 	@echo -e "Simulating Source Design"
 # Uncomment below if you want to just run the simulation as a console command
-# using the commands listed in the CONSOLE_SIM_CMDS definition above instead of 
+# using the commands listed in the CONSOLE_SIM_CMDS definition above instead of
 # .do file and have the transcript contents to be saved to a file
 #	@$(SIMULATE) -c -t ps -do $(CONSOLE_SIM_CMDS) $(S_WORK_LIB).$(TB_MODULE) > source.tran
 
@@ -228,7 +228,7 @@ sim_full_source: $(addprefix $(S_WORK_LIB)/, $(notdir $(basename $(TOP_LEVEL_FIL
 sim_full_mapped: $(addprefix $(M_WORK_LIB)/, $(notdir $(basename $(TOP_LEVEL_FILE) $(TEST_BENCH) $(TB_HELPER_FILES))))
 	@echo -e "Simulating Mapped Design"
 # Uncomment below if you want to just run the simulation as a console command
-# using the commands listed in the CONSOLE_SIM_CMDS definition above instead of 
+# using the commands listed in the CONSOLE_SIM_CMDS definition above instead of
 # .do file and have the transcript contents to be saved to a file
 #	@$(SIMULATE) -c -t ps -do $(CONSOLE_SIM_CMDS) $(M_WORK_LIB).$(TB_MODULE) > mapped.tran
 
@@ -268,8 +268,8 @@ tbsim_%_mapped: $(M_WORK_LIB)/% $(M_WORK_LIB)/tb_%
 
 # Set the default value of the clock name and clock period to an empty string so that clock timing will
 # only be activated in the SYN_CMDS definition if they were overwritten at invocation
-CLOCK_NAME 		:=
-CLOCK_PERIOD	:=
+CLOCK_NAME 		:= clk
+CLOCK_PERIOD	:= 8
 
 # Set the default value of the source files for sub modules to be an empty string so that
 # it will only be used if overwritten at invocation
@@ -290,7 +290,7 @@ MOD_NAME := $(basename $(MAIN_FILE))
 # A customized make target for the top level file for complex designs
 # Note: The CLOCK_NAME variable override below will need to be set to the actual
 # clock signal name for sequential/clocked designs.
-# Also have to specify to run with the c shell to force it to use the course config (.cshrc) and call course scripts 
+# Also have to specify to run with the c shell to force it to use the course config (.cshrc) and call course scripts
 mapped/$(TOP_MODULE).v: SHELL := /usr/bin/tcsh
 $(addsuffix .v, $(addprefix mapped/, $(TOP_MODULE))): mapped/%.v : source/%.sv $(addprefix source/,$(COMPONENT_FILES))
 	@echo "Synthesizing design: $@\n"
@@ -308,7 +308,7 @@ $(addsuffix .v, $(addprefix mapped/, $(TOP_MODULE))): mapped/%.v : source/%.sv $
 # Additionally it will include any specified dependant submodule source files in the target's
 # dependencies and thus will resynthesize if any of them are newer as well.
 # It will pass on any of the related variables values if they were overwritten at runtime.
-# Also have to specify to run with the c shell to force it to use the course config (.cshrc) and call course scripts 
+# Also have to specify to run with the c shell to force it to use the course config (.cshrc) and call course scripts
 mapped/%.v: SHELL := /usr/bin/tcsh
 mapped/%.v: source/%.sv $(addprefix source/,$(DEP_SUB_FILES))
 	@echo "Synthesizing and Compiling design: $@\n"
@@ -362,4 +362,3 @@ syn_mapped do_mapping.tcl:
 	@echo -e '$(subst $(newline),\n,$(subst \n,\\n,${SYN_CMDS}))' > do_mapping.tcl
 	$(DC_SHELL) -x "source -echo do_mapping.tcl"
 	@echo -e "Done\n\n"
-
