@@ -20,8 +20,6 @@ module fir_filter
   output err
 );
 
-  // Between synchronizers and controller
-  wire dr, lc;
   // Between controller and datapath
   wire overflow;
   wire [2:0] op;
@@ -31,25 +29,13 @@ module fir_filter
   // Between datapath and magnitude
   wire [16:0] outreg_data;
 
-  sync_low SYNC1 (
-    .clk(clk),
-    .n_rst(n_reset),
-    .async_in(data_ready),
-    .sync_out(dr)
-  );
-
-  sync_low SYNC2 (
-    .clk(clk),
-    .n_rst(n_reset),
-    .async_in(load_coeff),
-    .sync_out(lc)
-  );
+  // Removed synchronizers for new design
 
   controller CNTRLR (
     .clk(clk),
     .n_rst(n_reset),
-    .dr(dr),
-    .lc(lc),
+    .dr(data_ready),
+    .lc(load_coeff),
     .overflow(overflow),
     .cnt_up(cnt_up),
     .clear(clear),
