@@ -11,13 +11,14 @@ module coefficient_loader
 	input clk,
 	input n_reset,
 	input new_coefficient_set,
-        input modwait,
-        output load_coeff,
-        output [1:0] coefficient_num
+  input modwait,
+  output load_coeff,
+	output clear_new_coeff,
+  output [1:0] coefficient_num
 );
 
 logic [3:0] state, next_state;
-logic ld_cf;
+logic ld_cf, clr_cf;
 logic [1:0] cf_num;
 
 // State register
@@ -70,15 +71,19 @@ always_comb begin
     end
     4'b1000: begin // wait
       if (modwait == 1'b0) begin
-        next_state = 4'b0000;
+        next_state = 4'b1001;
       end
     end
+		4'b1001: begin // clear
+		  next_state = 4'b0000;
+		end
   endcase
 end
 
 // Output logic
 always_comb begin
   ld_cf = 1'b0; // default
+	clr_cf = 1'b0; // default
   cf_num = 2'b00; // default
 
   case (state)
@@ -110,10 +115,14 @@ always_comb begin
     4'b1000: begin // wait f3
       cf_num = 2'b11;
     end
+		4'b1001: begin // clear
+		  clr_cf = 1'b1;
+		end
   endcase
 end
 
 assign load_coeff = ld_cf;
+assign clear_new_coeff = clr_cf;
 assign coefficient_num = cf_num;
 
 endmodule

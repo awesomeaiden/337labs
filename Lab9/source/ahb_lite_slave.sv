@@ -11,34 +11,74 @@ module ahb_lite_slave
 	input clk,
 	input n_rst,
 	input [1:0] coefficient_num,
-	input data_ready,
-	input overrun_error,
-        input framing_error,
-        output data_read,
-        input psel,
-        input [2:0] paddr,
-        input penable,
-        input pwrite,
-        input [7:0] pwdata,
-        output [7:0] prdata,
-        output pslverr,
-        output [3:0] data_size,
-        output [13:0] bit_period
+	input modwait,
+	input [15:0] fir_out,
+	input err,
+  input hsel,
+  input [3:0] haddr,
+  input hsize,
+  input [1:0] htrans, // unused
+  input hwrite,
+  input [15:0] hwdata,
+	input clear_new_coeff,
+  output [15:0] sample_data,
+  output data_ready,
+  output new_coefficient_set,
+  output [15:0] fir_coefficient,
+	output [15:0] hrdata,
+	output hresp
 );
 
+// TODO: HOW TO ACCOUNT FOR RAW HAZARD?
+
 // Registers
-logic [7:0] array[4:0], next_array[4:0];
-logic [7:0] outreg, next_outreg;
-logic d_read, slv_err;
+// TODO Other outputs?
+logic [7:0] array[13:0], next_array[13:0];
+logic [15:0] outreg, next_outreg;
+logic [15:0] fr_cf;
+logic [3:0] addr, next_addr;
+logic d_r, next_d_r;
+
+// Address register
+always_ff @(posedge clk, negedge n_rst) begin
+  if (n_rst == 1'b0) begin
+	  addr <= 4'b0000;
+	end else begin
+	  addr <= next_addr;
+	end
+end
+
+// Next address logic
+always_comb begin
+  next_addr = haddr;
+end
+
+// Data ready register
+always_ff @(posedge clk, negedge n_rst) begin
+  if (n_rst == 1'b0) begin
+	  d_r <= 1'b0;
+	end else begin
+	  d_r <= next_d_r;
+	end
+end
 
 // Array
 always_ff @ (posedge clk, negedge n_rst) begin
   if (n_rst == 1'b0) begin
     array[0] <= 8'b00000000;
     array[1] <= 8'b00000000;
-    array[2] <= 8'b00001010;
+    array[2] <= 8'b00000000;
     array[3] <= 8'b00000000;
-    array[4] <= 8'b00001000;
+    array[4] <= 8'b00000000;
+		array[5] <= 8'b00000000;
+		array[6] <= 8'b00000000;
+		array[7] <= 8'b00000000;
+		array[8] <= 8'b00000000;
+		array[9] <= 8'b00000000;
+		array[10] <= 8'b00000000;
+		array[11] <= 8'b00000000;
+		array[12] <= 8'b00000000;
+		array[13] <= 8'b00000000;
   end else begin
     array <= next_array;
   end
@@ -47,84 +87,181 @@ end
 // Outreg
 always_ff @ (posedge clk, negedge n_rst) begin
   if (n_rst == 1'b0) begin
-    outreg <= 0;
+    outreg <= 16'b0000000000000000;
   end else begin
     outreg <= next_outreg;
   end
 end
 
-// Data Status Register
+// Status Register (0x0)
 always_comb begin
-  next_array[0] = {7'b0000000, data_ready}; // fill excess with 0s
+  next_array[0] = 8'b00000000; // Default
+  next_array[1] = 8'b00000000; // Default
+
+  // If filter busy or coefficient loading in process
+	if (modwait == 1'b1 || array[14] == 8'b00000001) begin
+	  next_array[0] = 8'b00000001;
+	end
+
+	if (err == 1'b1) begin
+    next_array[1] = 8'b00000001;
+  end
 end
 
-// Error Status Register
+// Result Register (0x2)
 always_comb begin
-  if (overrun_error == 1'b0 && framing_error == 1'b0)
-    next_array[1] = {6'b000000, 2'b00}; // fill excess with 0s
-  else if (framing_error == 1'b1)
-    next_array[1] = {6'b000000, 2'b01}; // fill excess with 0s
-  else
-    next_array[1] = {6'b000000, 2'b10}; // fill excess with 0s
+  next_array[2] = fir_out[7:0];
+  next_array[3] = fir_out[15:8];
 end
 
-// Bit period [7:0] configuration register
-always_comb begin
-  next_array[2] = array[2]; // Default
-  if (psel == 1'b1 && pwrite == 1'b1 && paddr == 3'b010)
-    next_array[2] = pwdata;
-end
-
-// Bit period [13:8] configuration register
-always_comb begin
-  next_array[3] = array[3]; // Default
-  if (psel == 1'b1 && pwrite == 1'b1 && paddr == 3'b011)
-    next_array[3] = {2'b00, pwdata[5:0]}; // fill excess with 0s
-end
-
-// Data Size [3:0] configuration register
+// New Sample Register (0x4)
+// Also contains next_d_r logic
 always_comb begin
   next_array[4] = array[4]; // Default
-  if (psel == 1'b1 && pwrite == 1'b1 && paddr == 3'b100)
-    next_array[4] = {4'b0000, pwdata[3:0]}; // fill excess with 0s
+	next_array[5] = array[5]; // Default
+	next_d_r = 1'b0; // Default
+
+	// Two-byte sample write
+  if (hsel == 1'b1 && (addr == 4'b0100 || addr == 4'b0101) && hwrite == 1'b1 && hsize == 1'b1) begin
+	  next_array[4] = hwdata[7:0];
+	  next_array[5] = hwdata[15:8];
+		next_d_r = 1'b1; // New sample available
+	// Lower byte write
+  end else if (hsel == 1'b1 && addr == 4'b0100 && hwrite == 1'b1 && hsize == 1'b0) begin
+	  next_array[4] = hwdata[7:0];
+		next_d_r = 1'b1; // New sample available
+	// Upper byte write
+	end else if (hsel == 1'b1 && addr == 4'b0101 && hwrite == 1'b1 && hsize == 1'b0) begin
+	  next_array[5] = hwdata[15:8];
+		next_d_r = 1'b1; // New sample available
+	end
 end
 
-// Outreg, data_read, and pslverr
+// F0 Coefficient Register (0x6)
 always_comb begin
-  d_read = 1'b0; // Default
-  slv_err = 1'b0; // Default
-  next_outreg = outreg; // Default
-  if (psel == 1'b1 && pwrite == 1'b0) begin
-    if (paddr == 3'b000) begin
-      next_outreg = array[0];
-    end else if (paddr == 3'b001) begin
-      next_outreg = array[1];
-    end else if (paddr == 3'b010) begin
-      next_outreg = array[2];
-    end else if (paddr == 3'b011) begin
-      next_outreg = array[3];
-    end else if (paddr == 3'b100) begin
-      next_outreg = array[4];
-    end else if (paddr == 3'b110) begin
-      next_outreg = rx_data;
-      d_read = 1'b1; // indicate data has been read
-    end else begin
-      slv_err = 1'b1; // invalid address
-    end
+  next_array[6] = array[6]; // Default
+  next_array[7] = array[7]; // Default
+
+	// Two-byte sample write
+  if (hsel == 1'b1 && (addr == 4'b0110 || addr == 4'b0111) && hwrite == 1'b1 && hsize == 1'b1) begin
+	  next_array[6] = hwdata[7:0];
+	  next_array[7] = hwdata[15:8];
+	// Lower byte write
+  end else if (hsel == 1'b1 && addr == 4'b0110 && hwrite == 1'b1 && hsize == 1'b0) begin
+	  next_array[6] = hwdata[7:0];
+	// Upper byte write
+	end else if (hsel == 1'b1 && addr == 4'b0111 && hwrite == 1'b1 && hsize == 1'b0) begin
+	  next_array[7] = hwdata[15:8];
+	end
+end
+
+// F1 Coefficient Register (0x8)
+always_comb begin
+  next_array[8] = array[8]; // Default
+  next_array[9] = array[9]; // Default
+
+	// Two-byte sample write
+  if (hsel == 1'b1 && (addr == 4'b1000 || addr == 4'b1001) && hwrite == 1'b1 && hsize == 1'b1) begin
+	  next_array[8] = hwdata[7:0];
+	  next_array[9] = hwdata[15:8];
+	// Lower byte write
+  end else if (hsel == 1'b1 && addr == 4'b1000 && hwrite == 1'b1 && hsize == 1'b0) begin
+	  next_array[8] = hwdata[7:0];
+	// Upper byte write
+	end else if (hsel == 1'b1 && addr == 4'b1001 && hwrite == 1'b1 && hsize == 1'b0) begin
+	  next_array[9] = hwdata[15:8];
+	end
+end
+
+// F2 Coefficient Register (0xA)
+always_comb begin
+  next_array[10] = array[10]; // Default
+  next_array[11] = array[11]; // Default
+
+	// Two-byte sample write
+  if (hsel == 1'b1 && (addr == 4'b1010 || addr == 4'b1011) && hwrite == 1'b1 && hsize == 1'b1) begin
+	  next_array[10] = hwdata[7:0];
+	  next_array[11] = hwdata[15:8];
+	// Lower byte write
+  end else if (hsel == 1'b1 && addr == 4'b1010 && hwrite == 1'b1 && hsize == 1'b0) begin
+	  next_array[10] = hwdata[7:0];
+	// Upper byte write
+	end else if (hsel == 1'b1 && addr == 4'b1011 && hwrite == 1'b1 && hsize == 1'b0) begin
+	  next_array[11] = hwdata[15:8];
+	end
+end
+
+// F3 Coefficient Register (0xC)
+always_comb begin
+  next_array[12] = array[12]; // Default
+  next_array[13] = array[13]; // Default
+
+	// Two-byte sample write
+  if (hsel == 1'b1 && (addr == 4'b1100 || addr == 4'b1101) && hwrite == 1'b1 && hsize == 1'b1) begin
+	  next_array[12] = hwdata[7:0];
+	  next_array[13] = hwdata[15:8];
+	// Lower byte write
+  end else if (hsel == 1'b1 && addr == 4'b1100 && hwrite == 1'b1 && hsize == 1'b0) begin
+	  next_array[12] = hwdata[7:0];
+	// Upper byte write
+	end else if (hsel == 1'b1 && addr == 4'b1101 && hwrite == 1'b1 && hsize == 1'b0) begin
+	  next_array[13] = hwdata[15:8];
+	end
+end
+
+// Coefficient Set Confirmation Register (0xE)
+always_comb begin
+  next_array[14] = array[14]; // Default
+
+  // Writing to register (hsize irrelevant as long as address is 0xE)
+	if (hsel == 1'b1 && addr == 4'b1110 && hwrite == 1'b1) begin
+    next_array[14] = hwdata[7:0];
   end
 
-  if (psel == 1'b1 && pwrite == 1'b1 && paddr != 3'b010 && paddr != 3'b011 && paddr != 3'b100) begin
-    slv_err = 1'b1; // invalid write address
+   // Coefficient loading complete (overrides write)
+  if (clear_new_coeff == 1'b1) begin
+    next_array[14] = 8'b00000000;
   end
+end
+
+// Outreg
+// TODO: OTHER OUTPUTS?
+always_comb begin
+  next_outreg = outreg; // Default
+	hresp = 1'b0; // Default
+
+  if (hsel == 1'b1 && hwrite == 1'b0) begin
+	  if (haddr == 4'b0000) // Read status register
+		  next_outreg = {array[1], array[0]};
+	  else if (haddr == 4'b0010) // Read result register
+		  next_outreg = {array[3], array[2]};
+	  else if (haddr == 4'b0100) // Read new sample register
+		  next_outreg = {array[5], array[4]};
+	  else if (haddr == 4'b0110) // Read f0 coefficient register
+		  next_outreg = {array[7], array[6]};
+	  else if (haddr == 4'b1000) // Read f1 coefficient register
+		  next_outreg = {array[9], array[8]};
+	  else if (haddr == 4'b1010) // Read f2 coefficient register
+		  next_outreg = {array[11], array[10]};
+	  else if (haddr == 4'b1100) // Read f3 coefficient register
+		  next_outreg = {array[13], array[12]};
+	  else if (haddr == 4'b1110) // Read coefficient set confirmation register
+		  next_outreg = {8'b00000000, array[14]};
+	  else
+		  hresp = 1'b1; // invalid address
+  end
+end
+
+// Fir coefficient output
+always_comb begin
+  fr_cf = {array[7 + coefficient_num], array[6 + coefficient_num]};
 end
 
 // Outputs
-assign prdata = outreg;
-assign data_size = array[4];
-assign bit_period[7:0] = array[2];
-assign bit_period[13:8] = array[3];
-assign data_read = d_read;
-assign pslverr = slv_err;
+assign hrdata = outreg;
+assign sample_data = {array[5], array[4]};
+assign fir_coefficient = fr_cf;
+assign data_ready = d_r;
+assign new_coefficient_set = array[14];
 
 endmodule
-
