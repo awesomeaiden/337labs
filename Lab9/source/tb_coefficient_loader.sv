@@ -68,7 +68,7 @@ module tb_coefficient_loader();
 
   // Task to cleanly and consistently check DUT coefficient_num
   task check_coefficient_num;
-    input logic  expected_coefficient_num;
+    input logic [1:0] expected_coefficient_num;
     input string check_tag;
   begin
     if(expected_coefficient_num == tb_coefficient_num) begin // Check passed
@@ -127,10 +127,6 @@ module tb_coefficient_loader();
     check_load_coeff(1'b0, "after reset applied");
     check_coefficient_num(2'b00, "after reset applied");
 
-    // Check that the reset value is maintained during a clock cycle
-    #(CLK_PERIOD);
-    check_count( RESET_OUTPUT_VALUE, "after clock cycle while in reset");
-
     // Release the reset away from a clock edge
     @(posedge tb_clk);
     #(2 * FF_HOLD_TIME);
@@ -159,6 +155,7 @@ module tb_coefficient_loader();
 
     // Wait for DUT to process stimulus before checking results
     @(posedge tb_clk);
+    tb_new_coefficient_set = 1'b0;
     // Move away from rising edge and allow for propagation delays before checking
     @(negedge tb_clk);
     // Check results

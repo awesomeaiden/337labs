@@ -8,9 +8,9 @@
 
 module coefficient_loader
 (
-	      input clk,
-				input n_reset,
-				input new_coefficient_set,
+	input clk,
+	input n_reset,
+	input new_coefficient_set,
         input modwait,
         output load_coeff,
         output [1:0] coefficient_num
@@ -21,9 +21,9 @@ logic ld_cf;
 logic [1:0] cf_num;
 
 // State register
-always_ff @ (posedge clk, negedge n_rst)
+always_ff @ (posedge clk, negedge n_reset)
   begin
-    if (n_rst == 0) begin
+    if (n_reset == 0) begin
       state <= 4'b000;
     end
     else begin
@@ -42,32 +42,37 @@ always_comb begin
       end
     end
     4'b0001: begin // load f0
-      next_state = 4'0b010;
+      next_state = 4'b0010;
     end
     4'b0010: begin // wait
-		  if (modwait == 1'b0) begin
-			  next_state = 4'b0011;
-			end
-		end
-		4'b0011: begin // load f1
-		  next_state = 4'b0100;
-		end
-		4'b0100: begin // wait
-		  if (modwait == 1'b0) begin
-			  next_state = 4'b0101;
-			end
-		end
-		4'b0101: begin // load f2
-		  next_state = 4'b0110;
-		end
-		4'b0110: begin // wait
-		  if (modwait == 1'b0) begin
-			  next_state = 4'b0111;
-			end
-		end
-		4'b0111: begin // load f3
-		  next_state = 4'b0000;
-		end
+      if (modwait == 1'b0) begin
+	next_state = 4'b0011;
+      end
+    end
+    4'b0011: begin // load f1
+      next_state = 4'b0100;
+    end
+    4'b0100: begin // wait
+      if (modwait == 1'b0) begin
+        next_state = 4'b0101;
+      end
+    end
+    4'b0101: begin // load f2
+      next_state = 4'b0110;
+    end
+    4'b0110: begin // wait
+      if (modwait == 1'b0) begin
+        next_state = 4'b0111;
+      end
+    end
+    4'b0111: begin // load f3
+      next_state = 4'b1000;
+    end
+    4'b1000: begin // wait
+      if (modwait == 1'b0) begin
+        next_state = 4'b0000;
+      end
+    end
   endcase
 end
 
@@ -77,22 +82,34 @@ always_comb begin
   cf_num = 2'b00; // default
 
   case (state)
-		4'b0001: begin // load f0
-			ld_cf = 1'b1;
-			cf_num = 2'b00;
-		end
-		4'b0011: begin // load f1
-	    ld_cf = 1'b1;
-		  cf_num = 2'b01;
-		end
-		4'b0101: begin // load f2
-			ld_cf = 1'b1;
-			cf_num = 2'b10;
-		end
-		4'b0111: begin // load f3
-			ld_cf = 1'b1;
-			cf_num = 2'b11;
-		end
+    4'b0001: begin // load f0
+      ld_cf = 1'b1;
+      cf_num = 2'b00;
+    end
+    4'b0010: begin // wait f0
+      cf_num = 2'b00;
+    end
+    4'b0011: begin // load f1
+      ld_cf = 1'b1;
+      cf_num = 2'b01;
+    end
+    4'b0100: begin // wait f1
+      cf_num = 2'b01;
+    end
+    4'b0101: begin // load f2
+      ld_cf = 1'b1;
+      cf_num = 2'b10;
+    end
+    4'b0110: begin // wait f2
+      cf_num = 2'b10;
+    end
+    4'b0111: begin // load f3
+      ld_cf = 1'b1;
+      cf_num = 2'b11;
+    end
+    4'b1000: begin // wait f3
+      cf_num = 2'b11;
+    end
   endcase
 end
 
