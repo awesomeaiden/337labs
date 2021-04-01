@@ -381,6 +381,48 @@ initial begin
   execute_transactions(1);
 
   // Repeat steps 2-4 until done with sample data to process with the current FIR coefficients
+  // Send the SECOND sample data to process
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd100, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // 3 Poll the status register until new data is present
+  poll_status();
+
+  // 4 Read the data from the result buffer
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd50, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+  // Send the THIRD sample data to process
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd100, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // 3 Poll the status register until new data is present
+  poll_status();
+
+  // 4 Read the data from the result buffer
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd50, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+  // Send the FOURTH sample data to process
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd100, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // 3 Poll the status register until new data is present
+  poll_status();
+
+  // 4 Read the data from the result buffer
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd0, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
 
   // Give some visual spacing between check and next test case start
   #(CLK_PERIOD * 3);
