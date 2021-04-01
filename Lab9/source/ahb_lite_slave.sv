@@ -37,7 +37,7 @@ logic [3:0] addr, next_addr;
 logic hsl, next_hsl;
 logic hwrt, next_hwrt;
 logic hsz, next_hsz;
-logic d_r, next_d_r;
+logic d_r, next_d_r, dr_hold;
 logic hr;
 
 // Address register
@@ -100,8 +100,16 @@ end
 always_ff @(posedge clk, negedge n_rst) begin
   if (n_rst == 1'b0) begin
 	  d_r <= 1'b0;
+		dr_hold <= 1'b0;
 	end else begin
-	  d_r <= next_d_r;
+	  if (dr_hold == 1'b1) begin
+		  dr_hold <= 1'b0;
+		end else if (d_r == 1'b0 && next_d_r == 1'b1) begin
+		  dr_hold <= 1'b1;
+			d_r <= next_d_r;
+		end else begin
+		  d_r <= next_d_r;
+		end
 	end
 end
 
