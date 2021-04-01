@@ -15,7 +15,7 @@ module ahb_lite_fir_filter
 	input hsize,
   input [1:0] htrans,
 	input hwrite,
-	input [15:0] hwdata
+	input [15:0] hwdata,
 	output [15:0] hrdata,
   output hresp
 );
