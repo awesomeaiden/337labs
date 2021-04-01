@@ -36,6 +36,9 @@ logic [7:0] array[14:0], next_array[14:0];
 logic [15:0] outreg, next_outreg;
 logic [15:0] fr_cf;
 logic [3:0] addr, next_addr;
+logic hsl, next_hsl;
+logic hwrt, next_hwrt;
+logic hsz, next_hsz;
 logic d_r, next_d_r;
 logic hr;
 
@@ -51,6 +54,48 @@ end
 // Next address logic
 always_comb begin
   next_addr = haddr;
+end
+
+// Hselect register
+always_ff @(posedge clk, negedge n_rst) begin
+  if (n_rst == 1'b0) begin
+	  hsl <= 1'b0;
+	end else begin
+	  hsl <= next_hsl;
+	end
+end
+
+// Next hselect logic
+always_comb begin
+  next_hsl = hsel;
+end
+
+// Hwrite register
+always_ff @(posedge clk, negedge n_rst) begin
+  if (n_rst == 1'b0) begin
+	  hwrt <= 1'b0;
+	end else begin
+	  hwrt <= next_hwrt;
+	end
+end
+
+// Next hwrt logic
+always_comb begin
+  next_hwrt = hwrite;
+end
+
+// Hsize register
+always_ff @(posedge clk, negedge n_rst) begin
+  if (n_rst == 1'b0) begin
+	  hsz <= 1'b0;
+	end else begin
+	  hsz <= next_hsz;
+	end
+end
+
+// Next hsz logic
+always_comb begin
+  next_hsz = hsize;
 end
 
 // Data ready register
@@ -123,16 +168,16 @@ always_comb begin
 	next_d_r = 1'b0; // Default
 
 	// Two-byte sample write
-  if (hsel == 1'b1 && (addr == 4'b0100 || addr == 4'b0101) && hwrite == 1'b1 && hsize == 1'b1) begin
+  if (hsl == 1'b1 && (addr == 4'b0100 || addr == 4'b0101) && hwrt == 1'b1 && hsz == 1'b1) begin
 	  next_array[4] = hwdata[7:0];
 	  next_array[5] = hwdata[15:8];
 		next_d_r = 1'b1; // New sample available
 	// Lower byte write
-  end else if (hsel == 1'b1 && addr == 4'b0100 && hwrite == 1'b1 && hsize == 1'b0) begin
+  end else if (hsl == 1'b1 && addr == 4'b0100 && hwrt == 1'b1 && hsz == 1'b0) begin
 	  next_array[4] = hwdata[7:0];
 		next_d_r = 1'b1; // New sample available
 	// Upper byte write
-	end else if (hsel == 1'b1 && addr == 4'b0101 && hwrite == 1'b1 && hsize == 1'b0) begin
+	end else if (hsl == 1'b1 && addr == 4'b0101 && hwrt == 1'b1 && hsz == 1'b0) begin
 	  next_array[5] = hwdata[15:8];
 		next_d_r = 1'b1; // New sample available
 	end
@@ -144,14 +189,14 @@ always_comb begin
   next_array[7] = array[7]; // Default
 
 	// Two-byte sample write
-  if (hsel == 1'b1 && (addr == 4'b0110 || addr == 4'b0111) && hwrite == 1'b1 && hsize == 1'b1) begin
+  if (hsl == 1'b1 && (addr == 4'b0110 || addr == 4'b0111) && hwrt == 1'b1 && hsz == 1'b1) begin
 	  next_array[6] = hwdata[7:0];
 	  next_array[7] = hwdata[15:8];
 	// Lower byte write
-  end else if (hsel == 1'b1 && addr == 4'b0110 && hwrite == 1'b1 && hsize == 1'b0) begin
+  end else if (hsl == 1'b1 && addr == 4'b0110 && hwrt == 1'b1 && hsz == 1'b0) begin
 	  next_array[6] = hwdata[7:0];
 	// Upper byte write
-	end else if (hsel == 1'b1 && addr == 4'b0111 && hwrite == 1'b1 && hsize == 1'b0) begin
+	end else if (hsl == 1'b1 && addr == 4'b0111 && hwrt == 1'b1 && hsz == 1'b0) begin
 	  next_array[7] = hwdata[15:8];
 	end
 end
@@ -162,14 +207,14 @@ always_comb begin
   next_array[9] = array[9]; // Default
 
 	// Two-byte sample write
-  if (hsel == 1'b1 && (addr == 4'b1000 || addr == 4'b1001) && hwrite == 1'b1 && hsize == 1'b1) begin
+  if (hsl == 1'b1 && (addr == 4'b1000 || addr == 4'b1001) && hwrt == 1'b1 && hsz == 1'b1) begin
 	  next_array[8] = hwdata[7:0];
 	  next_array[9] = hwdata[15:8];
 	// Lower byte write
-  end else if (hsel == 1'b1 && addr == 4'b1000 && hwrite == 1'b1 && hsize == 1'b0) begin
+  end else if (hsl == 1'b1 && addr == 4'b1000 && hwrt == 1'b1 && hsz == 1'b0) begin
 	  next_array[8] = hwdata[7:0];
 	// Upper byte write
-	end else if (hsel == 1'b1 && addr == 4'b1001 && hwrite == 1'b1 && hsize == 1'b0) begin
+	end else if (hsl == 1'b1 && addr == 4'b1001 && hwrt == 1'b1 && hsz == 1'b0) begin
 	  next_array[9] = hwdata[15:8];
 	end
 end
@@ -180,14 +225,14 @@ always_comb begin
   next_array[11] = array[11]; // Default
 
 	// Two-byte sample write
-  if (hsel == 1'b1 && (addr == 4'b1010 || addr == 4'b1011) && hwrite == 1'b1 && hsize == 1'b1) begin
+  if (hsl == 1'b1 && (addr == 4'b1010 || addr == 4'b1011) && hwrt == 1'b1 && hsz == 1'b1) begin
 	  next_array[10] = hwdata[7:0];
 	  next_array[11] = hwdata[15:8];
 	// Lower byte write
-  end else if (hsel == 1'b1 && addr == 4'b1010 && hwrite == 1'b1 && hsize == 1'b0) begin
+  end else if (hsl == 1'b1 && addr == 4'b1010 && hwrt == 1'b1 && hsz == 1'b0) begin
 	  next_array[10] = hwdata[7:0];
 	// Upper byte write
-	end else if (hsel == 1'b1 && addr == 4'b1011 && hwrite == 1'b1 && hsize == 1'b0) begin
+	end else if (hsl == 1'b1 && addr == 4'b1011 && hwrt == 1'b1 && hsz == 1'b0) begin
 	  next_array[11] = hwdata[15:8];
 	end
 end
@@ -198,14 +243,14 @@ always_comb begin
   next_array[13] = array[13]; // Default
 
 	// Two-byte sample write
-  if (hsel == 1'b1 && (addr == 4'b1100 || addr == 4'b1101) && hwrite == 1'b1 && hsize == 1'b1) begin
+  if (hsl == 1'b1 && (addr == 4'b1100 || addr == 4'b1101) && hwrt == 1'b1 && hsz == 1'b1) begin
 	  next_array[12] = hwdata[7:0];
 	  next_array[13] = hwdata[15:8];
 	// Lower byte write
-  end else if (hsel == 1'b1 && addr == 4'b1100 && hwrite == 1'b1 && hsize == 1'b0) begin
+  end else if (hsl == 1'b1 && addr == 4'b1100 && hwrt == 1'b1 && hsz == 1'b0) begin
 	  next_array[12] = hwdata[7:0];
 	// Upper byte write
-	end else if (hsel == 1'b1 && addr == 4'b1101 && hwrite == 1'b1 && hsize == 1'b0) begin
+	end else if (hsl == 1'b1 && addr == 4'b1101 && hwrt == 1'b1 && hsz == 1'b0) begin
 	  next_array[13] = hwdata[15:8];
 	end
 end
@@ -215,7 +260,7 @@ always_comb begin
   next_array[14] = array[14]; // Default
 
   // Writing to register (hsize irrelevant as long as address is 0xE)
-	if (hsel == 1'b1 && addr == 4'b1110 && hwrite == 1'b1) begin
+	if (hsl == 1'b1 && addr == 4'b1110 && hwrt == 1'b1) begin
     next_array[14] = hwdata[7:0];
   end
 
