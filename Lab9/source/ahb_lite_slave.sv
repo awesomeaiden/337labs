@@ -286,7 +286,7 @@ always_comb begin
 	  next_outreg = hwdata;
 	end else if (hsel == 1'b1 && hwrite == 1'b0) begin
 	  if (haddr == 4'b0000) // Read status register
-		  next_outreg = {array[1], array[0]};
+		  next_outreg = {next_array[1], next_array[0]}; // "next" to accelerate reading
 	  else if (haddr == 4'b0010) // Read result register
 		  next_outreg = {array[3], array[2]};
 	  else if (haddr == 4'b0100) // Read new sample register
