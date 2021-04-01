@@ -312,7 +312,7 @@ end
 
 // Fir coefficient output
 always_comb begin
-  fr_cf = {array[7 + coefficient_num], array[6 + coefficient_num]};
+  fr_cf = {array[7 + (2 * coefficient_num)], array[6 + (2 * coefficient_num)]};
 end
 
 // Outputs

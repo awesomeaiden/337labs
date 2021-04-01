@@ -365,7 +365,7 @@ initial begin
   tb_test_case = "Configure FIR Coefficients";
 
   // 1 Configure FIR Coefficients
-  load_coefficients(COEFF_5, COEFF1, COEFF1, COEFF_5);
+  load_coefficients(COEFF_125, COEFF_25, COEFF_5, COEFF1);
 
    tb_test_case = "Send first sample";
 
@@ -382,7 +382,7 @@ initial begin
 
   // 4 Read the data from the result buffer
   // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd50, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd12, 1'b0, 1'b1);
   // Run the transactions via the model
   execute_transactions(1);
 
@@ -392,7 +392,7 @@ initial begin
 
   // Send the SECOND sample data to process
   // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd100, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd0, 1'b0, 1'b1);
   // Run the transactions via the model
   execute_transactions(1);
 
@@ -403,7 +403,7 @@ initial begin
 
   // 4 Read the data from the result buffer
   // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd50, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd25, 1'b0, 1'b1);
   // Run the transactions via the model
   execute_transactions(1);
 
@@ -411,7 +411,7 @@ initial begin
 
   // Send the THIRD sample data to process
   // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd100, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd0, 1'b0, 1'b1);
   // Run the transactions via the model
   execute_transactions(1);
 
@@ -430,7 +430,7 @@ initial begin
 
   // Send the FOURTH sample data to process
   // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd100, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd0, 1'b0, 1'b1);
   // Run the transactions via the model
   execute_transactions(1);
 
@@ -441,7 +441,7 @@ initial begin
 
   // 4 Read the data from the result buffer
   // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd0, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd100, 1'b0, 1'b1);
   // Run the transactions via the model
   execute_transactions(1);
 
