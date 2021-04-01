@@ -32,12 +32,12 @@ module ahb_lite_slave
 // TODO: HOW TO ACCOUNT FOR RAW HAZARD?
 
 // Registers
-// TODO Other outputs?
-logic [7:0] array[13:0], next_array[13:0];
+logic [7:0] array[14:0], next_array[14:0];
 logic [15:0] outreg, next_outreg;
 logic [15:0] fr_cf;
 logic [3:0] addr, next_addr;
 logic d_r, next_d_r;
+logic hr;
 
 // Address register
 always_ff @(posedge clk, negedge n_rst) begin
@@ -70,15 +70,16 @@ always_ff @ (posedge clk, negedge n_rst) begin
     array[2] <= 8'b00000000;
     array[3] <= 8'b00000000;
     array[4] <= 8'b00000000;
-		array[5] <= 8'b00000000;
-		array[6] <= 8'b00000000;
-		array[7] <= 8'b00000000;
-		array[8] <= 8'b00000000;
-		array[9] <= 8'b00000000;
-		array[10] <= 8'b00000000;
-		array[11] <= 8'b00000000;
-		array[12] <= 8'b00000000;
-		array[13] <= 8'b00000000;
+    array[5] <= 8'b00000000;
+    array[6] <= 8'b00000000;
+    array[7] <= 8'b00000000;
+    array[8] <= 8'b00000000;
+    array[9] <= 8'b00000000;
+    array[10] <= 8'b00000000;
+    array[11] <= 8'b00000000;
+    array[12] <= 8'b00000000;
+    array[13] <= 8'b00000000;
+    array[14] <= 8'b00000000;
   end else begin
     array <= next_array;
   end
@@ -228,7 +229,7 @@ end
 // TODO: OTHER OUTPUTS?
 always_comb begin
   next_outreg = outreg; // Default
-	hresp = 1'b0; // Default
+	hr = 1'b0; // Default
 
   if (hsel == 1'b1 && hwrite == 1'b0) begin
 	  if (haddr == 4'b0000) // Read status register
@@ -248,7 +249,7 @@ always_comb begin
 	  else if (haddr == 4'b1110) // Read coefficient set confirmation register
 		  next_outreg = {8'b00000000, array[14]};
 	  else
-		  hresp = 1'b1; // invalid address
+		  hr = 1'b1; // invalid address
   end
 end
 
@@ -263,5 +264,6 @@ assign sample_data = {array[5], array[4]};
 assign fir_coefficient = fr_cf;
 assign data_ready = d_r;
 assign new_coefficient_set = array[14];
+assign hresp = hr;
 
 endmodule

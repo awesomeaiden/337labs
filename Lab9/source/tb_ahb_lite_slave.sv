@@ -88,6 +88,7 @@ logic [1:0]             tb_coeff_num;
 logic                   tb_data_ready;
 logic [DATA_MAX_BIT:0]  tb_sample_data;
 logic                   tb_new_coeff_set;
+logic                   tb_clear_new_coeff;
 logic [DATA_MAX_BIT:0]  tb_fir_coefficient;
 
 // Expected value check signals
@@ -151,6 +152,7 @@ ahb_lite_slave DUT (.clk(tb_clk), .n_rst(tb_n_rst),
                     .data_ready(tb_data_ready),
                     .fir_coefficient(tb_fir_coefficient),
                     .new_coefficient_set(tb_new_coeff_set),
+                    .clear_new_coeff(tb_clear_new_coeff),
                     .coefficient_num(tb_coeff_num),
                     // AHB-Lite-Slave bus signals
                     .hsel(tb_hsel),
@@ -340,6 +342,9 @@ initial begin
   tb_transaction_data     = '0;
   tb_transaction_error    = 1'b0;
   tb_transaction_size     = 3'd0;
+
+  // Initialize clear_new_coeff
+  tb_clear_new_coeff = 1'b0;
 
   // Wait some time before starting first test case
   #(0.1);

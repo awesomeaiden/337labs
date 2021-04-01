@@ -221,6 +221,7 @@ module tb_coefficient_loader();
     @(negedge tb_clk);
     tb_modwait = 1'b0;
     @(posedge tb_clk);
+    @(negedge tb_clk);
     // Loader should send clear signal now
     check_load_coeff(1'b0, "when clearing");
     check_clear_new_coeff(1'b1, "when clearing");
