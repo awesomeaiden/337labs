@@ -303,7 +303,11 @@ always_comb begin
 		  next_outreg = {8'b00000000, array[14]};
 	  else
 		  hr = 1'b1; // invalid address
-  end
+  end else if (hsel == 1'b1 && hwrite == 1'b1) begin
+	  if (haddr < 4 || haddr > 14) begin
+		  hr = 1'b1; // invalid write address
+		end
+	end
 end
 
 // Fir coefficient output
