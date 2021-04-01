@@ -24,6 +24,7 @@ module tb_coefficient_loader();
   reg tb_new_coefficient_set;
   reg tb_modwait;
   wire tb_load_coeff;
+  wire tb_clear_new_coeff;
   wire [1:0] tb_coefficient_num;
 
   // Declare test bench signals
@@ -66,6 +67,20 @@ module tb_coefficient_loader();
   end
   endtask
 
+  // Task to cleanly and consistently check DUT clear_new_coeff
+  task check_clear_new_coeff;
+    input logic  expected_clear_new_coeff;
+    input string check_tag;
+  begin
+    if(expected_clear_new_coeff == tb_clear_new_coeff) begin // Check passed
+      $info("Correct clear_new_coeff %s during %s test case", check_tag, tb_test_case);
+    end
+    else begin // Check failed
+      $error("Incorrect clear_new_coeff %s during %s test case", check_tag, tb_test_case);
+    end
+  end
+  endtask
+
   // Task to cleanly and consistently check DUT coefficient_num
   task check_coefficient_num;
     input logic [1:0] expected_coefficient_num;
@@ -95,7 +110,8 @@ module tb_coefficient_loader();
   // DUT Port map
   coefficient_loader DUT(
     .clk(tb_clk), .n_reset(tb_n_reset), .new_coefficient_set(tb_new_coefficient_set),
-     .modwait(tb_modwait), .load_coeff(tb_load_coeff), .coefficient_num(tb_coefficient_num));
+     .modwait(tb_modwait), .load_coeff(tb_load_coeff), .clear_new_coeff(tb_clear_new_coeff),
+     .coefficient_num(tb_coefficient_num));
 
   // Test bench main process
   initial
@@ -125,6 +141,7 @@ module tb_coefficient_loader();
 
     // Check that internal state was correctly reset
     check_load_coeff(1'b0, "after reset applied");
+    check_clear_new_coeff(1'b0, "after reset applied");
     check_coefficient_num(2'b00, "after reset applied");
 
     // Release the reset away from a clock edge
@@ -134,6 +151,7 @@ module tb_coefficient_loader();
     #0.1;
     // Check that internal state was correctly keep after reset release
     check_load_coeff(1'b0, "after reset applied");
+    check_clear_new_coeff(1'b0, "after reset applied");
     check_coefficient_num(2'b00, "after reset applied");
 
     // ************************************************************************
@@ -160,11 +178,13 @@ module tb_coefficient_loader();
     @(negedge tb_clk);
     // Check results
     check_load_coeff(1'b1, "after new_coefficient_set applied");
+    check_clear_new_coeff(1'b0, "after new_coefficient_set applied");
     check_coefficient_num(2'b00, "after new_coefficient_set applied");
     @(posedge tb_clk);
     tb_modwait = 1'b1; // FIR module responds and starts the load
     @(negedge tb_clk);
     check_load_coeff(1'b0, "after load f0 started");
+    check_clear_new_coeff(1'b0, "after load f0 started");
     check_coefficient_num(2'b00, "after load f0 started");
     @(posedge tb_clk);
     @(posedge tb_clk);
@@ -173,6 +193,7 @@ module tb_coefficient_loader();
     @(posedge tb_clk);
     @(negedge tb_clk);
     check_load_coeff(1'b1, "when starting load f1");
+    check_clear_new_coeff(1'b0, "when starting load f1");
     check_coefficient_num(2'b01, "when starting load f1");
     @(posedge tb_clk);
     tb_modwait = 1'b1;
@@ -182,6 +203,7 @@ module tb_coefficient_loader();
     @(posedge tb_clk);
     @(negedge tb_clk);
     check_load_coeff(1'b1, "when starting load f2");
+    check_clear_new_coeff(1'b0, "when starting load f2");
     check_coefficient_num(2'b10, "when starting load f2");
     @(posedge tb_clk);
     tb_modwait = 1'b1;
@@ -192,7 +214,17 @@ module tb_coefficient_loader();
     @(posedge tb_clk);
     @(negedge tb_clk);
     check_load_coeff(1'b1, "when starting load f3");
+    check_clear_new_coeff(1'b0, "when starting load f3");
     check_coefficient_num(2'b11, "when starting load f3");
-     // end of test cases
+    @(posedge tb_clk);
+    tb_modwait = 1'b1;
+    @(negedge tb_clk);
+    tb_modwait = 1'b0;
+    @(posedge tb_clk);
+    // Loader should send clear signal now
+    check_load_coeff(1'b0, "when clearing");
+    check_clear_new_coeff(1'b1, "when clearing");
+    check_coefficient_num(2'b00, "when clearing");
+    // end of test cases
   end
 endmodule
