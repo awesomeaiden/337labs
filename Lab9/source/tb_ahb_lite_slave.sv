@@ -488,7 +488,7 @@ initial begin
   // Update Navigation Info
   tb_test_case     = "Read result register";
   tb_test_case_num = tb_test_case_num + 1;
-  init_fir_side();
+  //init_fir_side();
   init_expected_outs();
 
   // DON'T RESET
@@ -515,7 +515,7 @@ initial begin
   // Update Navigation Info
   tb_test_case     = "Read new sample register";
   tb_test_case_num = tb_test_case_num + 1;
-  init_fir_side();
+  //init_fir_side();
   init_expected_outs();
 
   // DON'T RESET
@@ -542,7 +542,7 @@ initial begin
   // Update Navigation Info
   tb_test_case     = "Read status register";
   tb_test_case_num = tb_test_case_num + 1;
-  init_fir_side();
+  //init_fir_side();
   init_expected_outs();
 
   // DON'T RESET
@@ -569,7 +569,7 @@ initial begin
   // Update Navigation Info
   tb_test_case     = "Read coefficient registers";
   tb_test_case_num = tb_test_case_num + 1;
-  init_fir_side();
+  //init_fir_side();
   init_expected_outs();
 
   // DON'T RESET
