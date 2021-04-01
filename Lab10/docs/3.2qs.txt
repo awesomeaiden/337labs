@@ -1,0 +1,12 @@
+Lower left corner: (330, 300)
+Upper right corner: (1280, 1270)
+
+Area: width x height = (1280 - 330) x (1270 - 300) = 950 x 970 = 921,500
+
+The previous area is lesser, because the density was greater.  Previous row utilization was 0.6, which resulted in a more compact design.
+
+I don't think so, because the components have to be insulated from one another and it is probably impossible to achieve a 100% efficiently packed design of different components.
+
+After generating a 100% row utilization layout, the design definitely looks a bit more compact, but not particularly dramatically.  While the utilization target is 100%, obviously it cannot quite achieve that, but it does get more compact.  About 10+% less area than the 40 percent utilization design.
+
+Companies do not employ full standard cell place and routing so that they can further optimize their designs beyond the automated outputs.  You can't continue to improve and innovate if you always use the same automated outputs.
