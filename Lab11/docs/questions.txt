@@ -1,0 +1,7 @@
+Section 2.1:
+
+1. Which layers are used for the sections of the supply rings:
+
+2. What are the widths of the supply ring bars and their spacing?
+
+3. What is the spacing between the inner supply ring and the core area, and which prior command controls this?
