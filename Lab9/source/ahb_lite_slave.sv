@@ -29,8 +29,6 @@ module ahb_lite_slave
 	output hresp
 );
 
-// TODO: HOW TO ACCOUNT FOR RAW HAZARD?
-
 // Registers
 logic [7:0] array[14:0], next_array[14:0];
 logic [15:0] outreg, next_outreg;
@@ -271,12 +269,14 @@ always_comb begin
 end
 
 // Outreg
-// TODO: OTHER OUTPUTS?
 always_comb begin
   next_outreg = outreg; // Default
 	hr = 1'b0; // Default
 
-  if (hsel == 1'b1 && hwrite == 1'b0) begin
+	// RAW Hazard handling:
+	if (next_hwrt == 1'b0 && hwrt == 1'b1 && addr == next_addr && hsl == next_hsl && hsz == next_hsz) begin
+	  next_outreg = hwdata;
+	end else if (hsel == 1'b1 && hwrite == 1'b0) begin
 	  if (haddr == 4'b0000) // Read status register
 		  next_outreg = {array[1], array[0]};
 	  else if (haddr == 4'b0010) // Read result register
