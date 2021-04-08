@@ -219,7 +219,8 @@ module tb_conv_controller();
     init_inputs();
     reset_dut();
 
-    // Finish test case
+    @negedge(tb_clk);
+    tb_conv_en = 1'b1;
     
   end
 endmodule
