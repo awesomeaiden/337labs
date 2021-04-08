@@ -45,7 +45,7 @@ verifyConnectivity -type all -error 1000 -warning 50
 verify_drc
 
 # Export the design for use with Virtuoso
-source export.tcl
+# source export.tcl
 
 puts "**************************************"
 puts "* Encounter script finished          *"

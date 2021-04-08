@@ -2,7 +2,7 @@ Section 2.1:
 
 1. Which layers are used for the sections of the supply rings:
 
-   Bottom layer is gnd and top layer is vdd
+   Bottom layer is gnd and top layer is vdd.  Metal1 and Metal2.
 
 2. What are the widths of the supply ring bars and their spacing?
 
@@ -10,7 +10,7 @@ Section 2.1:
 
 3. What is the spacing between the inner supply ring and the core area, and which prior command controls this?
 
-   Ask TA
+   Spacing is 150, and the floorplan command controlled this.
 
 Section 2.2:
 
@@ -32,13 +32,13 @@ Section 2.2:
 
 5. What percentage of the core appears to be filled with cells after running "final_route.tcl"? And which command do you think primarily resulted in the change?
 
-  It looks like about 65+% of the cell is now covered with cells.  The add filler cells command probably caused this increase.
+  It looks like about 100% of the cell is now covered with cells.  Anything not covered is filled in with filler cells.  The add filler cells command probably caused this increase.
 
 Section 3:
 
 1. What are the starting and ending gate/cell level components of the critical path?
 
-   They appear to be registers
+   They appear to be registers.  waddr_reg[1] is start and end is fiforeg_reg[4][1]
 
 2. How many combinational logic cells are in between?
 
@@ -46,18 +46,25 @@ Section 3:
 
 3. What are the starting and ending blocks (design modules) of the critical path?
 
-   PADINC (U5) and fifo_reg[4][1]
+   UWFC and UFIFORAM
 
 4. Is the synthesis critical path similar to the layout one, and what are their respective delays?
 
    The synthesis critical path looks longer and more complicated than the layout path.  The synthesis path has a delay of 4.61 and the layout path has a delay of 4.371.
 
-Section 4: ASK TA
+Section 4:
+
+In innovus you can click the pads and see their connections.  You can look at the generated mapped verilog file and pads are on the very bottom. Can see what signals and modules are connected.  So then you can move around the pads to get them closer to what they are connected to.
+
+U1/U2 and U7 are connected to the same upper-left region of the chip, but are on opposite sides are not close to where they are connected to.  Maybe move these closer together? - DONE
+
+Pads U8-U16 and U3/U4 control FIFO stuff, which is where data is housed before loading into the USB-size's shift register.  These should be collected more towards the upper right of the chip.
 
 1. Reduced negative slack after IO-frame adjustment?
 
-
+   Before adjustment: Total Negative Slack (TNS): -59.3030.
+   After adjustment of U1/U2 and U7, TNS: -29.0340
 
 2. What change(s) were made and why do you think they resulted in the reduction?
 
-
+   Moving U16 closer to the U3 and U4 reduced the FIFO slack.

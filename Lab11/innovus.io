@@ -87,7 +87,7 @@ Orient: R180
 Pad: U15 S
 
 Orient: R270
-Pad: FE1 E PADNC
+Pad: U16 E
 Orient: R270
 Pad: U3 E
 Orient: R270
@@ -103,10 +103,7 @@ Pad: FE3 E PADNC
 Orient: R270
 Pad: U7 E
 Orient: R270
-Pad: U16 E
+Pad: FE1 E PADNC
 Orient: R270
 Pad: FE4 E PADNC
-
-
-
 
