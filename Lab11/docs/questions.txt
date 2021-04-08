@@ -2,6 +2,62 @@ Section 2.1:
 
 1. Which layers are used for the sections of the supply rings:
 
+   Bottom layer is gnd and top layer is vdd
+
 2. What are the widths of the supply ring bars and their spacing?
 
+   Supply bar rings are 9.9 units wide.  They are spaced a 9.9 units apart.
+
 3. What is the spacing between the inner supply ring and the core area, and which prior command controls this?
+
+   Ask TA
+
+Section 2.2:
+
+1. How did the layout change after running the "place_cells.tcl" script?
+
+   Cells were placed onto the layout in a semi-random fashion.
+
+2. What is a rough estimate of the core utilization based on the cells?
+
+   Looking at the layout, it looks like about 50% of the core is covered by cells.
+
+3. How did the layout change after running the "sroute" command?
+
+   Lines were drawn across the layout to connect the cells to the power and ground supplies
+
+4. In what ways are the three metal layers typically used in the routing?
+
+   Blue metal1 layer is used for power and ground supply.  Red metal2 layer is used for vertical routing.  Green metal3 layer is used for horizontal routing.
+
+5. What percentage of the core appears to be filled with cells after running "final_route.tcl"? And which command do you think primarily resulted in the change?
+
+  It looks like about 65+% of the cell is now covered with cells.  The add filler cells command probably caused this increase.
+
+Section 3:
+
+1. What are the starting and ending gate/cell level components of the critical path?
+
+   They appear to be registers
+
+2. How many combinational logic cells are in between?
+
+   There are 7 combinational logic cells in between.
+
+3. What are the starting and ending blocks (design modules) of the critical path?
+
+   PADINC (U5) and fifo_reg[4][1]
+
+4. Is the synthesis critical path similar to the layout one, and what are their respective delays?
+
+   The synthesis critical path looks longer and more complicated than the layout path.  The synthesis path has a delay of 4.61 and the layout path has a delay of 4.371.
+
+Section 4: ASK TA
+
+1. Reduced negative slack after IO-frame adjustment?
+
+
+
+2. What change(s) were made and why do you think they resulted in the reduction?
+
+
