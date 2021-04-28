@@ -55,7 +55,7 @@ module tb_conv_controller();
     tb_n_rst = 1'b1;
 
     // Leave out of reset for a couple cycles before allowing other stimulus
-    // Wait for negative clock edges, 
+    // Wait for negative clock edges,
     // since inputs to DUT should normally be applied away from rising clock edges
     @(negedge tb_clk);
     @(negedge tb_clk);
@@ -145,8 +145,8 @@ module tb_conv_controller();
   end
 
   // DUT Portmap
-  conv_controller DUT (.clk(tb_clk), 
-                       .n_rst(tb_n_rst), 
+  conv_controller DUT (.clk(tb_clk),
+                       .n_rst(tb_n_rst),
                        .sample_load_en(tb_sample_load_en),
                        .new_row(tb_new_row),
                        .coeff_load_en(tb_coeff_load_en),
@@ -189,7 +189,7 @@ module tb_conv_controller();
     // Check that the reset value is maintained during a clock cycle
     #(CLK_PERIOD);
     check_output("after clock cycle while in reset");
-    
+
     // Release the reset away from a clock edge
     @(negedge tb_clk);
     tb_n_rst  = 1'b1;   // Deactivate the chip reset
@@ -201,14 +201,99 @@ module tb_conv_controller();
     // Test Case 2: Coefficient Load Test
     // ************************************************************************
     tb_test_num  = tb_test_num + 1;
-    tb_test_case = "Normal Operation";
+    tb_test_case = "Coefficient Load Test";
     // Start out with inactive inputs and reset the DUT to isolate from prior tests
     init_inputs();
+    init_expected();
     reset_dut();
 
-    @negedge(tb_clk);
-    tb_conv_en = 1'b1;
-    
+    @(negedge tb_clk);
+    tb_coeff_ld = 1'b1;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_coeff_ld = 1'b0;
+    tb_expected_modwait = 1'b1;
+    tb_expected_coeff_ld = 1'b1;
+    tb_expected_coeff_sel = 2'b00;
+    check_output("loading first coefficient");
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_coeff_sel = 2'b01;
+    check_output("loading second coefficient");
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_coeff_sel = 2'b10;
+    check_output("loading third coefficient");
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    init_expected();
+    check_output("after loading coefficients");
+
+    // ************************************************************************
+    // Test Case 3: Sample Load Test
+    // ************************************************************************
+    tb_test_num  = tb_test_num + 1;
+    tb_test_case = "Sample Load Test";
+    // Start out with inactive inputs and DON'T reset the DUT
+    init_inputs();
+    init_expected();
+    //reset_dut();
+
+    @(negedge tb_clk);
+    tb_sample_load_en = 1'b1;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b1;
+    tb_expected_sample_shift = 1'b1;
+    check_output("during S0 load");
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b0;
+    tb_expected_sample_shift = 1'b0;
+    check_output("during S1 wait");
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b1;
+    tb_expected_sample_shift = 1'b1;
+    check_output("during S1 load");
+    tb_sample_load_en = 1'b0;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b0;
+    tb_expected_sample_shift = 1'b0;
+    check_output("during S2 wait");
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    check_output("still during S2 wait");
+    tb_sample_load_en = 1'b1;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b1;
+    tb_expected_sample_shift = 1'b1;
+    check_output("during S2 load");
+    tb_sample_load_en = 1'b0;
+
+    // ************************************************************************
+    // Test Case 4: Sample Streaming Test
+    // ************************************************************************
+    tb_test_num  = tb_test_num + 1;
+    tb_test_case = "Sample Streaming Test";
+    // Start out with inactive inputs and DON'T reset the DUT
+    init_inputs();
+    init_expected();
+    //reset_dut();
+
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_convolve_en = 1'b1;
+    tb_expected_sample_stream = 1'b1;
+    check_output("in convolve state");
+    @(posedge tb_clk);
+    @(posedge tb_clk); // GO TO CONVOLVE WAIT
+    @(posedge tb_clk);
+
+
   end
 endmodule
-  

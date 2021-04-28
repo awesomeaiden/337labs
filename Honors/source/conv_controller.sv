@@ -42,7 +42,7 @@ always_ff @ (posedge clk, negedge n_rst)
 // Next state logic
 always_comb begin
   next_state = state; // default
-  
+
   case (state)
     4'b0000: begin // IDLE
       if (sample_load_en == 1'b1)
@@ -87,8 +87,18 @@ always_comb begin
     4'b1010: begin // CF2 LOAD
       next_state = 4'b0000;
     end
+		4'b1011: begin // CONVOLVE WAIT
+		if (new_row == 1'b1 && sample_load_en == 1'b1)
+			next_state = 4'b0000;
+		else if (coeff_load_en == 1'b1)
+			next_state = 4'b1000;
+		else if (new_row == 1'b1)
+			next_state = 4'b0001;
+		else if (sample_load_en == 1'b1)
+			next_state = 4'b0111;
+		end
   endcase
-  
+
 end
 
 // Output logic
@@ -136,6 +146,9 @@ always_comb begin
       load = 1'b1;
       sel = 2'b10;
     end
+		4'b1011: begin // CONVOLVE WAIT
+		  stream = 1'b1;
+		end
   endcase
 
 end
@@ -148,4 +161,3 @@ assign coeff_ld = load;
 assign coeff_sel = sel;
 
 endmodule
-
