@@ -11,38 +11,34 @@
 module tb_conv_controller();
   // Define parameters
   // Common parameters
-  localparam CLK_PERIOD        = 2.5;
-  localparam PROPAGATION_DELAY = 0.8; // Allow for 800 ps for FF propagation delay
-  localparam  INACTIVE_VALUE     = 1'b0;
-  localparam RESET_OUTPUT_VALUE  = 1'b0;
+  localparam  CLK_PERIOD    = 10;
+  localparam  RESET_VALUE     = 0;
+  localparam  FF_HOLD_TIME  = 0.100;
 
   // Declare Test Case Signals
   integer tb_test_num;
   string  tb_test_case;
-  int     tb_bit_num;
-  logic   tb_mismatch;
-  logic   tb_check;
 
   // Declare the Test Bench Signals for Expected Results
-  logic tb_expected_load_coeff;
-  logic tb_expected_load_sample;
-  logic tb_expected_start_conv;
-  logic tb_expected_shift;
-  logic tb_expected_result_ready;
+  logic tb_expected_modwait;
+  logic tb_expected_sample_stream;
+  logic tb_expected_sample_shift;
+  logic tb_expected_convolve_en;
+  logic tb_expected_coeff_ld;
+  logic [1:0] tb_expected_coeff_sel;
 
   // Declare DUT Connection Signals
   logic tb_clk;
   logic tb_n_rst;
-  logic tb_conv_en;
-  logic tb_coeff_loaded;
-  logic tb_sample_loaded;
-  logic tb_conv_complete;
-  logic tb_sample_complete;
-  logic tb_load_coeff;
-  logic tb_load_sample;
-  logic tb_start_conv;
-  logic tb_shift;
-  logic tb_result_ready;
+  logic tb_sample_load_en;
+  logic tb_new_row;
+  logic tb_coeff_load_en;
+  logic tb_modwait;
+  logic tb_sample_stream;
+  logic tb_sample_shift;
+  logic tb_convolve_en;
+  logic tb_coeff_ld;
+  logic [1:0] tb_coeff_sel;
 
 // Task for standard DUT reset procedure
   task reset_dut;
@@ -70,74 +66,70 @@ module tb_conv_controller();
   task check_output;
     input string check_tag;
   begin
-    tb_mismatch = 1'b0;
-    tb_check    = 1'b1;
 
-    if(tb_expected_load_coeff == tb_load_coeff) begin // Check passed
-      $info("Correct load_coeff output %s during %s test case", check_tag, tb_test_case);
+    if(tb_expected_modwait == tb_modwait) begin // Check passed
+      $info("Correct modwait output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
-      tb_mismatch = 1'b1;
-      $error("Incorrect load_coeff output %s during %s test case", check_tag, tb_test_case);
+      $error("Incorrect modwait output %s during %s test case", check_tag, tb_test_case);
     end
 
-    if(tb_expected_load_sample == tb_load_sample) begin // Check passed
-      $info("Correct load_sample output %s during %s test case", check_tag, tb_test_case);
+    if(tb_expected_sample_stream == tb_sample_stream) begin // Check passed
+      $info("Correct sample_stream output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
-      tb_mismatch = 1'b1;
-      $error("Incorrect load_sample output %s during %s test case", check_tag, tb_test_case);
+      $error("Incorrect sample_stream output %s during %s test case", check_tag, tb_test_case);
     end
 
-    if(tb_expected_start_conv == tb_start_conv) begin // Check passed
-      $info("Correct start_conv output %s during %s test case", check_tag, tb_test_case);
+    if(tb_expected_sample_shift == tb_sample_shift) begin // Check passed
+      $info("Correct sample_shift output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
-      tb_mismatch = 1'b1;
-      $error("Incorrect start_conv output %s during %s test case", check_tag, tb_test_case);
+      $error("Incorrect sample_shift output %s during %s test case", check_tag, tb_test_case);
     end
 
-    if(tb_expected_shift == tb_shift) begin // Check passed
-      $info("Correct shift output %s during %s test case", check_tag, tb_test_case);
+    if(tb_expected_convolve_en == tb_convolve_en) begin // Check passed
+      $info("Correct convolve_en output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
-      tb_mismatch = 1'b1;
-      $error("Incorrect shift output %s during %s test case", check_tag, tb_test_case);
+      $error("Incorrect convolve_en output %s during %s test case", check_tag, tb_test_case);
     end
 
-    if(tb_expected_result_ready == tb_result_ready) begin // Check passed
-      $info("Correct result_ready output %s during %s test case", check_tag, tb_test_case);
+    if(tb_expected_coeff_ld == tb_coeff_ld) begin // Check passed
+      $info("Correct coeff_ld output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
-      tb_mismatch = 1'b1;
-      $error("Incorrect result_ready output %s during %s test case", check_tag, tb_test_case);
+      $error("Incorrect coeff_ld output %s during %s test case", check_tag, tb_test_case);
     end
 
-    // Wait some small amount of time so check pulse timing is visible on waves
-    #(0.1);
-    tb_check =1'b0;
+    if(tb_expected_coeff_sel == tb_coeff_sel) begin // Check passed
+      $info("Correct coeff_sel output %s during %s test case", check_tag, tb_test_case);
+    end
+    else begin // Check failed
+      $error("Incorrect coeff_sel output %s during %s test case", check_tag, tb_test_case);
+    end
   end
   endtask
 
   // Task to cleanly and consistently initialize expected values
   task init_expected;
   begin
-    tb_expected_load_coeff = 1'b0;
-    tb_expected_load_sample = 1'b0;
-    tb_expected_start_conv = 1'b0;
-    tb_expected_shift = 1'b0;
-    tb_expected_result_ready = 1'b0;
+    tb_expected_modwait = 1'b0;
+    tb_expected_sample_stream = 1'b0;
+    tb_expected_sample_shift = 1'b0;
+    tb_expected_convolve_en = 1'b0;
+    tb_expected_coeff_ld = 1'b0;
+    tb_expected_coeff_sel  = 2'b00;
   end
   endtask
 
   // Task to cleanly and consistently initialize input values
   task init_inputs;
   begin
-    tb_conv_en = 1'b0;
-    tb_coeff_loaded = 1'b0;
-    tb_sample_loaded = 1'b0;
-    tb_conv_complete = 1'b0;
-    tb_sample_complete = 1'b0;
+    tb_n_rst = 1'b1;
+    tb_sample_load_en = 1'b0;
+    tb_new_row = 1'b0;
+    tb_coeff_load_en = 1'b0;
   end
   endtask
 
@@ -155,29 +147,24 @@ module tb_conv_controller();
   // DUT Portmap
   conv_controller DUT (.clk(tb_clk), 
                        .n_rst(tb_n_rst), 
-                       .conv_en(tb_conv_en),
-                       .coeff_loaded(tb_coeff_loaded),
-                       .sample_loaded(tb_sampled_loaded),
-                       .conv_complete(tb_conv_complete),
-                       .sample_complete(tb_sample_complete),
-                       .load_coeff(tb_load_coeff),
-                       .load_sample(tb_load_sample),
-                       .start_conv(tb_start_conv),
-                       .shift(tb_shift),
-                       .result_ready(tb_result_ready));
+                       .sample_load_en(tb_sample_load_en),
+                       .new_row(tb_new_row),
+                       .coeff_load_en(tb_coeff_load_en),
+                       .modwait(tb_modwait),
+                       .sample_stream(tb_sample_stream),
+                       .sample_shift(tb_sample_shift),
+                       .convolve_en(tb_convolve_en),
+                       .coeff_ld(tb_coeff_ld),
+                       .coeff_sel(tb_coeff_sel));
 
 
   // Test bench main process
   initial begin
     // Initialize all of the test inputs
-    tb_n_rst            = 1'b1; // Initialize to be inactive
     init_inputs(); // Initialize inputs to inactive values
     init_expected(); // Initialize inputs to inactive values
     tb_test_num         = 0;    // Initialize test case counter
     tb_test_case        = "Test bench initializaton";
-    tb_bit_num          = -1;   // Initialize to invalid number
-    tb_mismatch         = 1'b0;
-    tb_check            = 1'b0;
     // Wait some time before starting first test case
     #(0.1);
 
@@ -211,7 +198,7 @@ module tb_conv_controller();
     check_output("after reset was released");
 
     // ************************************************************************
-    // Test Case 2: Normal Operation
+    // Test Case 2: Coefficient Load Test
     // ************************************************************************
     tb_test_num  = tb_test_num + 1;
     tb_test_case = "Normal Operation";

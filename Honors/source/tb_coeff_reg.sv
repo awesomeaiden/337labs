@@ -1,14 +1,14 @@
 // $Id: $
-// File name:   tb_mult_add.sv
-// Created:     4/22/2021
+// File name:   tb_coeff_reg.sv
+// Created:     4/27/2021
 // Author:      Aiden Gonzalez
 // Lab Section: 337-02
 // Version:     1.0  Initial Design Entry
-// Description: Multipler/Adder Testbench
+// Description: Coefficient Register Testbench
 
 `timescale 1ns / 10ps
 
-module tb_mult_add();
+module tb_coeff_reg();
 
   // Define local parameters used by the test bench
   localparam  CLK_PERIOD    = 10;
@@ -17,11 +17,10 @@ module tb_mult_add();
   // Declare DUT portmap signals
   reg tb_clk;
   reg tb_n_rst;
-  reg [35:0] tb_sample_in;
-  reg [35:0] tb_coeff_in;
-  reg tb_conv_en;
-  wire [15:0] tb_result;
-  wire tb_result_ready;
+  reg tb_coeff_ld;
+  reg [15:0] tb_coeff_in;
+  reg [1:0] tb_coeff_sel;
+  wire [35:0] tb_coeff_out;
 
   // Declare test bench signals
   integer tb_test_num;
@@ -29,32 +28,14 @@ module tb_mult_add();
 
   // Task to cleanly and consistently check DUT outputs
   task check_outputs;
-    input logic  expected_result_ready;
+    input logic [35:0] expected_coeff_out;
     input string check_tag;
-    integer expected_result;
   begin
-    expected_result = (tb_sample_in[3:0] * tb_coeff_in[3:0]) 
-                    + (tb_sample_in[7:4] * tb_coeff_in[7:4])
-                    + (tb_sample_in[11:8] * tb_coeff_in[11:8])
-                    + (tb_sample_in[15:12] * tb_coeff_in[15:12])
-                    + (tb_sample_in[19:16] * tb_coeff_in[19:16])
-                    + (tb_sample_in[23:20] * tb_coeff_in[23:20])
-                    + (tb_sample_in[27:24] * tb_coeff_in[27:24])
-                    + (tb_sample_in[31:28] * tb_coeff_in[31:28])
-                    + (tb_sample_in[35:32] * tb_coeff_in[35:32]);
-
-    if(expected_result == tb_result) begin // Check passed
-      $info("Correct result %s during %s test case", check_tag, tb_test_case);
+    if(expected_coeff_out == tb_coeff_out) begin // Check passed
+      $info("Correct coeff_out %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect result %s during %s test case", check_tag, tb_test_case);
-    end
-
-    if(expected_result_ready == tb_result_ready) begin // Check passed
-      $info("Correct result_ready %s during %s test case", check_tag, tb_test_case);
-    end
-    else begin // Check failed
-      $error("Incorrect result_ready %s during %s test case", check_tag, tb_test_case);
     end
   end
   endtask
@@ -85,9 +66,9 @@ module tb_mult_add();
   task clear_inputs;
   begin
     tb_n_rst  = 1'b1;            // Initialize to be inactive
-    tb_sample_in = 36'd0;        // Initialize to be inactive
-    tb_coeff_in = 36'd0;         // Initialize to be inactive
-    tb_conv_en = 1'b0;           // Initialize to be inactive
+    tb_coeff_ld = 1'b0;          // Initialize to be inactive
+    tb_coeff_in = 16'd0;         // Initialize to be inactive
+    tb_coeff_sel = 2'b00;           // Initialize to be inactive
   end
   endtask
 
@@ -104,9 +85,8 @@ module tb_mult_add();
   end
 
   // DUT Port map
-  mult_add DUT(.clk(tb_clk), .n_rst(tb_n_rst), .sample_in(tb_sample_in), 
-               .coeff_in(tb_coeff_in), .conv_en(tb_conv_en), .result(tb_result),
-               .result_ready(tb_result_ready));
+  coeff_reg DUT(.clk(tb_clk), .n_rst(tb_n_rst), .coeff_ld(tb_coeff_ld), 
+               .coeff_in(tb_coeff_in), .coeff_sel(tb_coeff_sel), .coeff_out(tb_coeff_out));
 
   // Test bench main process
   initial
@@ -133,7 +113,7 @@ module tb_mult_add();
     #(CLK_PERIOD * 0.5);
 
     // Check that internal state was correctly reset
-    check_outputs(1'b0, "during reset");
+    check_outputs(36'd0, "during reset");
 
     // Release the reset away from a clock edge
     @(posedge tb_clk);
@@ -141,160 +121,54 @@ module tb_mult_add();
     tb_n_rst  = 1'b1;   // Deactivate the chip reset
     #0.1;
     // Check that internal state was correctly keep after reset release
-    check_outputs(1'b0, "after reset");
+    check_outputs(36'd0, "after reset");
 
     // ************************************************************************
-    // Test Case 2: Zeros
+    // Test Case 2: Coefficient Load Enable Test
     // ************************************************************************
     tb_test_num = tb_test_num + 1;
-    tb_test_case = "Zeros";
+    tb_test_case = "Coefficient Load Enable Test";
 
     // Prepare for test
     clear_inputs();
     reset_dut();
 
-    // Input all zeros - done
-    // Pulse conv_en
+    // Sequence of coefficients sent to 00 register, pulsing coeff_ld
+    tb_coeff_in = 16'd68;
     @(posedge tb_clk);
-    tb_conv_en = 1'b1;
+    @(negedge tb_clk);
+    check_outputs(36'd0, "without load enable");
+    tb_coeff_ld = 1'b1;
     @(posedge tb_clk);
-    tb_conv_en = 1'b0;
-
-    // Check outputs
     @(negedge tb_clk);
-    check_outputs(1'b1, "during result_ready");
-    @(negedge tb_clk);
-    check_outputs(1'b0, "after result_ready");
+    check_outputs(36'd68, "with load enable");
 
     // ************************************************************************
-    // Test Case 3: Small Coefficients / Small Samples
+    // Test Case 3: Coefficient Addressing Test
     // ************************************************************************
     tb_test_num = tb_test_num + 1;
-    tb_test_case = "Small Coefficients / Small Samples";
+    tb_test_case = "Coefficient Addressing Test";
 
     // Prepare for test
     clear_inputs();
     reset_dut();
 
-    // Input small coefficients / small samples
-    tb_coeff_in = 36'h321312123;
-    tb_sample_in = 36'h123132231;
-
-    // Pulse conv_en
+    // Send three coefficients
+    tb_coeff_in = 16'd1;
+    tb_coeff_sel = 2'b00;
+    tb_coeff_ld = 1'b1;
     @(posedge tb_clk);
-    tb_conv_en = 1'b1;
+    @(negedge tb_clk);
+    check_outputs({12'd0, 12'd0, 12'd1}, "after loading 00 register");
+    tb_coeff_in = 16'd2;
+    tb_coeff_sel = 2'b01;
     @(posedge tb_clk);
-    tb_conv_en = 1'b0;
-
-    // Check outputs
     @(negedge tb_clk);
-    check_outputs(1'b1, "during result_ready");
-    @(negedge tb_clk);
-    check_outputs(1'b0, "after result_ready");
-
-    // ************************************************************************
-    // Test Case 4: Small Coefficients / Large Samples
-    // ************************************************************************
-    tb_test_num = tb_test_num + 1;
-    tb_test_case = "Small Coefficients / Large Samples";
-
-    // Prepare for test
-    clear_inputs();
-    reset_dut();
-
-    // Input small coefficients / large samples
-    tb_coeff_in = 36'h321312123;
-    tb_sample_in = 36'hdfefedefd;
-
-    // Pulse conv_en
+    check_outputs({12'd0, 12'd2, 12'd1}, "after loading 01 register");
+    tb_coeff_in = 16'd3;
+    tb_coeff_sel = 2'b10;
     @(posedge tb_clk);
-    tb_conv_en = 1'b1;
-    @(posedge tb_clk);
-    tb_conv_en = 1'b0;
-
-    // Check outputs
     @(negedge tb_clk);
-    check_outputs(1'b1, "during result_ready");
-    @(negedge tb_clk);
-    check_outputs(1'b0, "after result_ready");
-
-    // ************************************************************************
-    // Test Case 5: Large Coefficients / Small Samples
-    // ************************************************************************
-    tb_test_num = tb_test_num + 1;
-    tb_test_case = "Large Coefficients / Small Samples";
-
-    // Prepare for test
-    clear_inputs();
-    reset_dut();
-
-    // Input large coefficients / small samples
-    tb_coeff_in = 36'hdfefedefd;
-    tb_sample_in = 36'h123132231;
-
-    // Pulse conv_en
-    @(posedge tb_clk);
-    tb_conv_en = 1'b1;
-    @(posedge tb_clk);
-    tb_conv_en = 1'b0;
-
-    // Check outputs
-    @(negedge tb_clk);
-    check_outputs(1'b1, "during result_ready");
-    @(negedge tb_clk);
-    check_outputs(1'b0, "after result_ready");
-
-    // ************************************************************************
-    // Test Case 6: Large Coefficients / Large Samples
-    // ************************************************************************
-    tb_test_num = tb_test_num + 1;
-    tb_test_case = "Large Coefficients / Large Samples";
-
-    // Prepare for test
-    clear_inputs();
-    reset_dut();
-
-    // Input large coefficients / large samples
-    tb_coeff_in = 36'hdfefedefd;
-    tb_sample_in = 36'hdfefedefd;
-
-    // Pulse conv_en
-    @(posedge tb_clk);
-    tb_conv_en = 1'b1;
-    @(posedge tb_clk);
-    tb_conv_en = 1'b0;
-
-    // Check outputs
-    @(negedge tb_clk);
-    check_outputs(1'b1, "during result_ready");
-    @(negedge tb_clk);
-    check_outputs(1'b0, "after result_ready");
-
-    // ************************************************************************
-    // Test Case 7: Max
-    // ************************************************************************
-    tb_test_num = tb_test_num + 1;
-    tb_test_case = "Max";
-
-    // Prepare for test
-    clear_inputs();
-    reset_dut();
-
-    // Input large coefficients / large samples
-    tb_coeff_in = 36'hfffffffff;
-    tb_sample_in = 36'hfffffffff;
-
-    // Pulse conv_en
-    @(posedge tb_clk);
-    tb_conv_en = 1'b1;
-    @(posedge tb_clk);
-    tb_conv_en = 1'b0;
-
-    // Check outputs
-    @(negedge tb_clk);
-    check_outputs(1'b1, "during result_ready");
-    @(negedge tb_clk);
-    check_outputs(1'b0, "after result_ready");
-
+    check_outputs({12'd3, 12'd2, 12'd1}, "after loading 10 register");
   end
 endmodule

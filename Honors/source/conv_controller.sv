@@ -10,29 +10,29 @@ module conv_controller
 (
 	input clk,
 	input n_rst,
-	input conv_en,
-        input coeff_loaded,
-        input sample_loaded,
-        input conv_complete,
-        input sample_complete,
-        output load_coeff,
-        output load_sample,
-        output start_conv,
-        output shift,
-        output result_ready
+	input sample_load_en,
+        input new_row,
+        input coeff_load_en,
+        output modwait,
+        output sample_stream,
+        output sample_shift,
+        output convolve_en,
+        output coeff_ld,
+        output [1:0] coeff_sel
 );
 
 // State
-logic [2:0] state, next_state;
+logic [3:0] state, next_state;
 
 // Outputs
-logic ld_cf, ld_smp, st_cv, sh, rs_rdy;
+logic mod, stream, shift, conv, load;
+logic [1:0] sel;
 
 // State register
 always_ff @ (posedge clk, negedge n_rst)
   begin
     if (n_rst == 0) begin
-      state <= 3'b000;
+      state <= 4'b000;
     end
     else begin
       state <= next_state;
@@ -44,30 +44,48 @@ always_comb begin
   next_state = state; // default
   
   case (state)
-    3'b000: begin // Idle
-      if (conv_en == 1'b1)
-        next_state = 3'b001;
+    4'b0000: begin // IDLE
+      if (sample_load_en == 1'b1)
+        next_state = 4'b0001;
     end
-    3'b001: begin // Coeff Load
-      if (coeff_loaded == 1'b1)
-        next_state = 3'b010;
+    4'b0001: begin // S0 LOAD
+      next_state = 4'b0010;
     end
-    3'b010: begin // Sample Load
-      if (sample_loaded == 1'b1)
-        next_state = 3'b011;
+    4'b0010: begin // S1 WAIT
+      if (sample_load_en == 1'b1)
+        next_state = 4'b0011;
     end
-    3'b011: begin // Convolve
-      if (conv_complete == 1'b1)
-        next_state = 3'b100;
+    4'b0011: begin // S1 LOAD
+      next_state = 4'b0100;
     end
-    3'b100: begin // Shift
-      if (sample_complete == 1'b1)
-        next_state = 3'b101;
-      else if (sample_loaded == 1'b1)
-        next_state = 3'b011;
+    4'b0100: begin // S2 WAIT
+      if (sample_load_en == 1'b1)
+        next_state = 4'b0101;
     end
-    3'b101: begin // Done
-      next_state = 3'b000;
+    4'b0101: begin // S2 LOAD
+      next_state = 4'b0110;
+    end
+    4'b0110: begin // CONVOLVE
+      if (new_row == 1'b1 && sample_load_en == 1'b1)
+        next_state = 4'b0000;
+      else if (coeff_load_en == 1'b1)
+        next_state = 4'b1000;
+      else if (new_row == 1'b1)
+        next_state = 4'b0001;
+      else if (sample_load_en == 1'b1)
+        next_state = 4'b0111;
+    end
+    4'b0111: begin // SAMPLE STREAM
+      next_state = 4'b0110;
+    end
+    4'b1000: begin // CF0 LOAD
+      next_state = 4'b1001;
+    end
+    4'b1001: begin // CF1 LOAD
+      next_state = 4'b1010;
+    end
+    4'b1010: begin // CF2 LOAD
+      next_state = 4'b0000;
     end
   endcase
   
@@ -75,37 +93,59 @@ end
 
 // Output logic
 always_comb begin
-  ld_cf = 1'b0; // default
-  ld_smp = 1'b0; // default
-  st_cv = 1'b0; // default
-  sh = 1'b0; // default
-  rs_rdy = 1'b0; // default
+  mod = 1'b0; // default
+  stream = 1'b0; // default
+  shift = 1'b0; // default
+  conv = 1'b0; // default
+  load = 1'b0; // default
+  sel = 2'b00; // default
 
   case (state)
-    3'b001: begin // Coeff Load
-      ld_cf = 1'b1;
+    4'b0001: begin // S0 LOAD
+      mod = 1'b1;
+      shift = 1'b1;
     end
-    3'b010: begin // Sample Load
-      ld_smp = 1'b1;
+    4'b0011: begin // S1 LOAD
+      mod = 1'b1;
+      shift = 1'b1;
     end
-    3'b011: begin // Convolve
-      st_cv = 1'b1;
+    4'b0101: begin // S2 LOAD
+      mod = 1'b1;
+      shift = 1'b1;
     end
-    3'b100: begin // Shift
-      sh = 1'b1;
+    4'b0110: begin // CONVOLVE
+      conv = 1'b1;
+      stream = 1'b1;
     end
-    3'b101: begin // Done
-      rs_rdy = 1'b1;
+    4'b0111: begin // SAMPLE STREAM
+      mod = 1'b1;
+      shift = 1'b1;
+    end
+    4'b1000: begin // CF0 LOAD
+      mod = 1'b1;
+      load = 1'b1;
+      sel = 2'b00;
+    end
+    4'b1001: begin // CF1 LOAD
+      mod = 1'b1;
+      load = 1'b1;
+      sel = 2'b01;
+    end
+    4'b1010: begin // CF2 LOAD
+      mod = 1'b1;
+      load = 1'b1;
+      sel = 2'b10;
     end
   endcase
 
 end
 
-assign load_coeff = ld_cf;
-assign load_sample = ld_smp;
-assign start_conv = st_cv;
-assign shift = sh;
-assign result_ready = rs_rdy;
+assign modwait = mod;
+assign sample_stream = stream;
+assign sample_shift = shift;
+assign convolve_en = conv;
+assign coeff_ld = load;
+assign coeff_sel = sel;
 
 endmodule
 
