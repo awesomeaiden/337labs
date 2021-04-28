@@ -45,7 +45,9 @@ always_comb begin
 
   case (state)
     4'b0000: begin // IDLE
-      if (sample_load_en == 1'b1)
+      if (coeff_load_en == 1'b1)
+        next_state = 4'b1000;
+      else if (sample_load_en == 1'b1)
         next_state = 4'b0001;
     end
     4'b0001: begin // S0 LOAD
@@ -74,6 +76,8 @@ always_comb begin
         next_state = 4'b0001;
       else if (sample_load_en == 1'b1)
         next_state = 4'b0111;
+      else
+        next_state = 4'b1011;
     end
     4'b0111: begin // SAMPLE STREAM
       next_state = 4'b0110;
@@ -87,16 +91,16 @@ always_comb begin
     4'b1010: begin // CF2 LOAD
       next_state = 4'b0000;
     end
-		4'b1011: begin // CONVOLVE WAIT
-		if (new_row == 1'b1 && sample_load_en == 1'b1)
-			next_state = 4'b0000;
-		else if (coeff_load_en == 1'b1)
-			next_state = 4'b1000;
-		else if (new_row == 1'b1)
-			next_state = 4'b0001;
-		else if (sample_load_en == 1'b1)
-			next_state = 4'b0111;
-		end
+    4'b1011: begin // CONVOLVE WAIT
+      if (new_row == 1'b1 && sample_load_en == 1'b1)
+        next_state = 4'b0000;
+      else if (coeff_load_en == 1'b1)
+        next_state = 4'b1000;
+      else if (new_row == 1'b1)
+        next_state = 4'b0001;
+      else if (sample_load_en == 1'b1)
+        next_state = 4'b0111;
+    end
   endcase
 
 end
@@ -146,9 +150,9 @@ always_comb begin
       load = 1'b1;
       sel = 2'b10;
     end
-		4'b1011: begin // CONVOLVE WAIT
-		  stream = 1'b1;
-		end
+    4'b1011: begin // CONVOLVE WAIT
+      stream = 1'b1;
+    end
   endcase
 
 end

@@ -35,7 +35,7 @@ module tb_coeff_reg();
       $info("Correct coeff_out %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
-      $error("Incorrect result %s during %s test case", check_tag, tb_test_case);
+      $error("Incorrect coeff_out %s during %s test case", check_tag, tb_test_case);
     end
   end
   endtask

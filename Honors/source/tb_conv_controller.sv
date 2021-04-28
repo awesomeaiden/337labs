@@ -68,42 +68,42 @@ module tb_conv_controller();
   begin
 
     if(tb_expected_modwait == tb_modwait) begin // Check passed
-      $info("Correct modwait output %s during %s test case", check_tag, tb_test_case);
+      //$info("Correct modwait output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect modwait output %s during %s test case", check_tag, tb_test_case);
     end
 
     if(tb_expected_sample_stream == tb_sample_stream) begin // Check passed
-      $info("Correct sample_stream output %s during %s test case", check_tag, tb_test_case);
+      //$info("Correct sample_stream output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect sample_stream output %s during %s test case", check_tag, tb_test_case);
     end
 
     if(tb_expected_sample_shift == tb_sample_shift) begin // Check passed
-      $info("Correct sample_shift output %s during %s test case", check_tag, tb_test_case);
+      //$info("Correct sample_shift output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect sample_shift output %s during %s test case", check_tag, tb_test_case);
     end
 
     if(tb_expected_convolve_en == tb_convolve_en) begin // Check passed
-      $info("Correct convolve_en output %s during %s test case", check_tag, tb_test_case);
+      //$info("Correct convolve_en output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect convolve_en output %s during %s test case", check_tag, tb_test_case);
     end
 
     if(tb_expected_coeff_ld == tb_coeff_ld) begin // Check passed
-      $info("Correct coeff_ld output %s during %s test case", check_tag, tb_test_case);
+      //$info("Correct coeff_ld output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect coeff_ld output %s during %s test case", check_tag, tb_test_case);
     end
 
     if(tb_expected_coeff_sel == tb_coeff_sel) begin // Check passed
-      $info("Correct coeff_sel output %s during %s test case", check_tag, tb_test_case);
+      //$info("Correct coeff_sel output %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect coeff_sel output %s during %s test case", check_tag, tb_test_case);
@@ -194,7 +194,6 @@ module tb_conv_controller();
     @(negedge tb_clk);
     tb_n_rst  = 1'b1;   // Deactivate the chip reset
     // Check that internal state was correctly keep after reset release
-    #(PROPAGATION_DELAY);
     check_output("after reset was released");
 
     // ************************************************************************
@@ -208,10 +207,10 @@ module tb_conv_controller();
     reset_dut();
 
     @(negedge tb_clk);
-    tb_coeff_ld = 1'b1;
+    tb_coeff_load_en = 1'b1;
     @(posedge tb_clk);
     @(negedge tb_clk);
-    tb_coeff_ld = 1'b0;
+    tb_coeff_load_en = 1'b0;
     tb_expected_modwait = 1'b1;
     tb_expected_coeff_ld = 1'b1;
     tb_expected_coeff_sel = 2'b00;
@@ -291,9 +290,107 @@ module tb_conv_controller();
     tb_expected_sample_stream = 1'b1;
     check_output("in convolve state");
     @(posedge tb_clk);
-    @(posedge tb_clk); // GO TO CONVOLVE WAIT
+    @(negedge tb_clk);
+    tb_expected_convolve_en = 1'b0;
+    check_output("in convolve wait state");
     @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_sample_load_en = 1'b1;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    init_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_sample_shift = 1'b1;
+    check_output("in sample stream state");
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    init_expected();
+    tb_expected_convolve_en = 1'b1;
+    tb_expected_sample_stream = 1'b1;
+    check_output("back in convolve state");
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    init_expected();
+    tb_expected_modwait = 1'b1;
+    tb_expected_sample_shift = 1'b1;
+    check_output("back in sample stream state");
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    // in convolve state again
 
+    // ************************************************************************
+    // Test Case 5: New Sample Row Test
+    // ************************************************************************
+    tb_test_num  = tb_test_num + 1;
+    tb_test_case = "New Sample Row Test";
+    // Start out with inactive inputs and DON'T reset the DUT
+    init_inputs();
+    init_expected();
+    //reset_dut();
+
+    tb_new_row = 1'b1;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b1;
+    tb_expected_sample_shift = 1'b1;
+    check_output("during S0 load");
+    tb_new_row = 1'b0;
+    tb_sample_load_en = 1'b1;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b0;
+    tb_expected_sample_shift = 1'b0;
+    check_output("during S1 wait");
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b1;
+    tb_expected_sample_shift = 1'b1;
+    check_output("during S1 load");
+    tb_sample_load_en = 1'b0;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b0;
+    tb_expected_sample_shift = 1'b0;
+    check_output("during S2 wait");
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    check_output("still during S2 wait");
+    tb_sample_load_en = 1'b1;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_expected_modwait = 1'b1;
+    tb_expected_sample_shift = 1'b1;
+    check_output("during S2 load");
+    tb_sample_load_en = 1'b0;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    // back in convolve state
+
+    // ************************************************************************
+    // Test Case 6: Sample Complete Test
+    // ************************************************************************
+    tb_test_num  = tb_test_num + 1;
+    tb_test_case = "Sample Complete Test";
+    // Start out with inactive inputs and DON'T reset the DUT
+    init_inputs();
+    init_expected();
+    //reset_dut();
+
+    tb_new_row = 1'b1;
+    tb_sample_load_en = 1'b1;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    check_output("returned to idle state");
+    tb_new_row = 1'b0;
+    tb_example_load_en = 1'b1;
+
+    tb_test_num = tb_test_num + 1;
+    tb_test_case = "Testing Complete"
+    reset_dut();
 
   end
 endmodule
