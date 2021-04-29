@@ -1,14 +1,14 @@
 // $Id: $
-// File name:   tb_ahb_slave.sv
-// Created:     4/28/2021
+// File name:   tb_ahb_convolver.sv
+// Created:     4/29/2021
 // Author:      Aiden Gonzalez
 // Lab Section: 337-02
 // Version:     1.0  Initial Design Entry
-// Description: Testbench for AHB Slave for AHB Convovler
+// Description: Test Bench for AHB Convolver
 
 `timescale 1ns / 10ps
 
-module tb_ahb_slave();
+module tb_ahb_convolver();
 
 // Timing related constants
 localparam CLK_PERIOD = 10;
@@ -30,7 +30,7 @@ localparam ADDR_COEFF_TWO  = 4'd8;  // R1
 localparam ADDR_COEFF_THREE  = 4'd10;  // R3
 localparam ADDR_COMMAND    = 4'd12; // Command/Control
 
-// AHB-Lite-Slave reset value constants
+// AHB-Slave reset value constants
 localparam RESET_COEFF  = '0;
 localparam RESET_SAMPLE = '0;
 
@@ -53,9 +53,6 @@ logic    tb_model_reset;
 string   tb_test_case;
 integer  tb_test_case_num;
 logic [DATA_MAX_BIT:0] tb_test_data;
-string                 tb_check_tag;
-logic                  tb_mismatch;
-logic                  tb_check;
 
 //*****************************************************************************
 // General System signals
@@ -74,32 +71,6 @@ logic                  tb_hwrite;
 logic [DATA_MAX_BIT:0] tb_hwdata;
 logic [DATA_MAX_BIT:0] tb_hrdata;
 logic                  tb_hresp;
-
-//*****************************************************************************
-// Convolver-side Signals
-//*****************************************************************************
-// Inputs
-logic tb_modwait;
-logic tb_sample_stream;
-logic [1:0] tb_coeff_sel;
-logic tb_empty;
-logic [15:0] tb_result_in;
-
-// Outputs
-logic [15:0] tb_col_out;
-logic tb_sample_load_en;
-logic tb_new_row;
-logic tb_coeff_load_en;
-logic [15:0] tb_coeff_out;
-logic tb_read_enable;
-
-// Expected value check signals
-logic [15:0] tb_expected_col_out;
-logic tb_expected_sample_load_en;
-logic tb_expected_new_row;
-logic tb_expected_coeff_load_en;
-logic [15:0] tb_expected_coeff_out;
-logic tb_expected_read_enable;
 
 //*****************************************************************************
 // Clock Generation Block
@@ -146,24 +117,15 @@ ahb_lite_bus BFM (.clk(tb_clk),
 //*****************************************************************************
 // DUT Instance
 //*****************************************************************************
-ahb_slave DUT (.clk(tb_clk), .n_rst(tb_n_rst),
+
+ahb_convolver DUT (.clk(tb_clk),
+                    .n_rst(tb_n_rst),
                     .hsel(tb_hsel),
                     .haddr(tb_haddr),
-                    .htrans(tb_htrans),
                     .hsize(tb_hsize[0]),
+                    .htrans(tb_htrans),
                     .hwrite(tb_hwrite),
                     .hwdata(tb_hwdata),
-                    .modwait(tb_modwait),
-                    .sample_stream(tb_sample_stream),
-                    .coeff_sel(tb_coeff_sel),
-                    .empty(tb_empty),
-                    .result_in(tb_result_in),
-                    .col_out(tb_col_out),
-                    .sample_load_en(tb_sample_load_en),
-                    .new_row(tb_new_row),
-                    .coeff_load_en(tb_coeff_load_en),
-                    .coeff_out(tb_coeff_out),
-                    .read_enable(tb_read_enable),
                     .hrdata(tb_hrdata),
                     .hresp(tb_hresp));
 
@@ -192,64 +154,71 @@ begin
 end
 endtask
 
+// Task for loading coefficients
+task load_coefficients;
+  input logic [15:0] r0;
+  input logic [15:0] r1;
+  input logic [15:0] r2;
+begin
+  // Enque the needed writes
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_COEFF_ONE, 16'd100, 1'b0, 1'b1); // R0
+  enqueue_transaction(1'b1, 1'b1, ADDR_COEFF_TWO, 16'd200, 1'b0, 1'b1); // R1
+  enqueue_transaction(1'b1, 1'b1, ADDR_COEFF_THREE, 16'd300, 1'b0, 1'b1); // R2
+  // Run the transactions via the model
+  execute_transactions(3);
+
+  // Now load into Coefficient Register
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000001, 1'b0, 1'b0);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // Poll status register until filter is idle again
+  poll_status();
+end
+endtask
+
+// Task for polling stauts register
+task poll_status;
+  integer poll;
+begin
+  // Keep polling status register until filter is idle
+  poll = 1;
+  while (poll == 1) begin
+    // for_dut, write_mode, address, data, expected_error, size
+    enqueue_transaction(1'b1, 1'b0, ADDR_STATUS, 8'b00000001, 1'b0, 1'b0);
+    // Run the transactions via the model
+    execute_transactions(1);
+    poll = tb_hrdata[0];
+
+    // Wait to poll again
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+  end
+end
+endtask
+
 // Task to cleanly and consistently check DUT output values
 task check_outputs;
+  input logic [15:0] tb_expected_hrdata;
+  input logic tb_expected_hresp;
   input string check_tag;
 begin
-  tb_mismatch = 1'b0;
-  tb_check    = 1'b1;
 
-  if(tb_expected_col_out == tb_col_out) begin // Check passed
-    $info("Correct 'col_out' output %s during %s test case", check_tag, tb_test_case);
+  if(tb_expected_hrdata == tb_hrdata) begin // Check passed
+    $info("Correct 'hrdata' output %s during %s test case", check_tag, tb_test_case);
   end
   else begin // Check failed
-    tb_mismatch = 1'b1;
-    $error("Incorrect 'col_out' output %s during %s test case", check_tag, tb_test_case);
+    $error("Incorrect 'hrdata' output %s during %s test case", check_tag, tb_test_case);
   end
 
-  if(tb_expected_sample_load_en == tb_sample_load_en) begin // Check passed
-    $info("Correct 'sample_load_en' output %s during %s test case", check_tag, tb_test_case);
+  if(tb_expected_hresp == tb_hresp) begin // Check passed
+    $info("Correct 'hresp' output %s during %s test case", check_tag, tb_test_case);
   end
   else begin // Check failed
-    tb_mismatch = 1'b1;
-    $error("Incorrect 'sample_load_en' output %s during %s test case", check_tag, tb_test_case);
+    $error("Incorrect 'hresp' output %s during %s test case", check_tag, tb_test_case);
   end
-
-  if(tb_expected_new_row == tb_new_row) begin // Check passed
-    $info("Correct 'new_row' output %s during %s test case", check_tag, tb_test_case);
-  end
-  else begin // Check failed
-    tb_mismatch = 1'b1;
-    $error("Incorrect 'new_row' output %s during %s test case", check_tag, tb_test_case);
-  end
-
-  if(tb_expected_coeff_load_en == tb_coeff_load_en) begin // Check passed
-    $info("Correct 'coeff_load_en' output %s during %s test case", check_tag, tb_test_case);
-  end
-  else begin // Check failed
-    tb_mismatch = 1'b1;
-    $error("Incorrect 'coeff_load_en' output %s during %s test case", check_tag, tb_test_case);
-  end
-
-  if(tb_expected_coeff_out == tb_coeff_out) begin // Check passed
-    $info("Correct 'coeff_out' output %s during %s test case", check_tag, tb_test_case);
-  end
-  else begin // Check failed
-    tb_mismatch = 1'b1;
-    $error("Incorrect 'coeff_out' output %s during %s test case", check_tag, tb_test_case);
-  end
-
-  if(tb_expected_read_enable == tb_read_enable) begin // Check passed
-    $info("Correct 'read_enable' output %s during %s test case", check_tag, tb_test_case);
-  end
-  else begin // Check failed
-    tb_mismatch = 1'b1;
-    $error("Incorrect 'read_enable' output %s during %s test case", check_tag, tb_test_case);
-  end
-
-  // Wait some small amount of time so check pulse timing is visible on waves
-  #(0.1);
-  tb_check =1'b0;
 end
 endtask
 
@@ -316,30 +285,6 @@ begin
 end
 endtask
 
-// Task to clear/initialize all FIR-side inputs
-task init_input;
-begin
-  tb_n_rst = 1'b1;
-  tb_modwait = 1'b0;
-  tb_sample_stream = 1'b0;
-  tb_coeff_sel = 2'b00;
-  tb_empty = 1'b1;
-  tb_result_in = 16'd0;
-end
-endtask
-
-// Task to clear/initialize all FIR-side inputs
-task init_expected;
-begin
-  tb_expected_col_out = 16'd0;
-  tb_expected_sample_load_en = 1'b0;
-  tb_expected_new_row = 1'b0;
-  tb_expected_coeff_load_en = 1'b0;
-  tb_expected_coeff_out = 16'd0;
-  tb_expected_read_enable = 1'b0;
-end
-endtask
-
 //*****************************************************************************
 //*****************************************************************************
 // Main TB Process
@@ -350,12 +295,8 @@ initial begin
   tb_test_case       = "Initilization";
   tb_test_case_num   = -1;
   tb_test_data       = '0;
-  tb_check_tag       = "N/A";
-  tb_check           = 1'b0;
-  tb_mismatch        = 1'b0;
   // Initialize all of the directly controled DUT inputs
   tb_n_rst          = 1'b1;
-  init_input();
   // Initialize all of the bus model control inputs
   tb_model_reset          = 1'b0;
   tb_enable_transactions  = 1'b0;
@@ -384,189 +325,156 @@ initial begin
   reset_dut();
 
   // Check outputs for reset state
-  init_expected();
-  check_outputs("after DUT reset");
-
-  //*****************************************************************************
-  // Test Case 2: Status Write/Read
-  //*****************************************************************************
-  // Update Navigation Info
-  tb_test_case     = "Status Write/Read";
-  tb_test_case_num = tb_test_case_num + 1;
-
-  // Reset the DUT to isolate from prior test case
-  init_input();
-  init_expected();
-  reset_dut();
-
-  // Assert modwait, empty, and stream
-  tb_modwait = 1'b1;
-  tb_empty = 1'b1;
-  tb_sample_stream = 1'b1;
-
-  // Enqueue the needed transactions (Write (error) then read)
-  tb_test_data = 16'd1000;
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_STATUS, tb_test_data, 1'b1, 1'b1);
-  enqueue_transaction(1'b1, 1'd0, ADDR_STATUS, 16'b0000000110000001, 1'b0, 1'b1);
-
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  // Wait a bit... not testing RAW
-  @(posedge tb_clk);
-  @(posedge tb_clk);
-  @(posedge tb_clk);
-
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  //*****************************************************************************
-  // Test Case 3: FIFO Result Write/Read
-  //*****************************************************************************
-  // Update Navigation Info
-  tb_test_case     = "FIFO Result Write/Read";
-  tb_test_case_num = tb_test_case_num + 1;
-  
-  // Reset the DUT to isolate from prior test case
-  init_input();
-  init_expected();
-  reset_dut();
-
-  // Assert result_in
-  tb_result_in = 16'd1234;
-
-  // Enqueue the needed transactions (Write (error) then read)
-  tb_test_data = 16'd1000;
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_RESULT, tb_test_data, 1'b1, 1'b1);
-  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd1234, 1'b0, 1'b1);
-
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  // Wait a bit... not testing RAW
-  @(posedge tb_clk);
-  @(posedge tb_clk);
-  @(posedge tb_clk);
-
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  // ENSURE READ_ENABLE IS PROPERLY PULSED DURING ADDRESS PHASE
-
-  // Check the DUT outputs
-  check_outputs("after attempting to read result");
+  check_outputs(16'd0, 1'b0, "after reset");
 
   // Give some visual spacing between check and next test case start
   #(CLK_PERIOD * 3);
 
   //*****************************************************************************
-  // Test Case 4: Sample Write/Read
+  // Test Case 2: Coefficient Loading Test
   //*****************************************************************************
   // Update Navigation Info
-  tb_test_case     = "Sample Write/Read";
+  tb_test_case     = "Coefficient Loading Test";
   tb_test_case_num = tb_test_case_num + 1;
-  
+
   // Reset the DUT to isolate from prior test case
-  init_input();
-  init_expected();
   reset_dut();
 
-  // Enqueue the needed transactions
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd1234, 1'b0, 1'b1);
-  enqueue_transaction(1'b1, 1'b0, ADDR_SAMPLE, 16'd1234, 1'b0, 1'b1);
-  
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  // Wait a bit... not testing RAW
-  @(posedge tb_clk);
-  @(posedge tb_clk);
-  @(posedge tb_clk);
-
-  // Run the transactions via the model
-  execute_transactions(1);
-
   //*****************************************************************************
-  // Test Case 5: Coefficients Write/Read
+  // Test Case 3: Sample Column Loading Test
   //*****************************************************************************
   // Update Navigation Info
-  tb_test_case     = "Coefficients Write/Read";
+  tb_test_case     = "Sample Column Loading Test";
   tb_test_case_num = tb_test_case_num + 1;
-  
+
   // Reset the DUT to isolate from prior test case
-  init_input();
-  init_expected();
   reset_dut();
 
-  // Enqueue the writes
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_COEFF_ONE, 16'd1, 1'b0, 1'b1);
-  enqueue_transaction(1'b1, 1'b1, ADDR_COEFF_TWO, 16'd2, 1'b0, 1'b1);
-  enqueue_transaction(1'b1, 1'b1, ADDR_COEFF_THREE, 16'd3, 1'b0, 1'b1);
-  // Run the transactions via the model
-  execute_transactions(3);
-
-  // Wait a bit... not testing RAW
-  @(posedge tb_clk);
-  @(posedge tb_clk);
-  @(posedge tb_clk);
-
-  // Enqueue the reads
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b0, ADDR_COEFF_ONE, 16'd1, 1'b0, 1'b1);
-  enqueue_transaction(1'b1, 1'b0, ADDR_COEFF_TWO, 16'd2, 1'b0, 1'b1);
-  enqueue_transaction(1'b1, 1'b0, ADDR_COEFF_THREE, 16'd3, 1'b0, 1'b1);
-  // Run the transactions via the model
-  execute_transactions(3);
-
-  // Now check coeff_sel
-  @(negedge tb_clk);
-  tb_coeff_sel = 2'b00;
-  @(negedge tb_clk);
-  tb_expected_coeff_out = 16'd1;
-  check_outputs("after selecting coeff one");
-  tb_coeff_sel = 2'b01;
-  @(negedge tb_clk);
-  tb_expected_coeff_out = 16'd2;
-  check_outputs("after selecting coeff two");
-  tb_coeff_sel = 2'b10;
-  @(negedge tb_clk);
-  tb_expected_coeff_out = 16'd3;
-  check_outputs("after selecting coeff three");
-
   //*****************************************************************************
-  // Test Case 6: Command Write/Read
+  // Test Case 4: Streaming / Convolution Test
   //*****************************************************************************
   // Update Navigation Info
-  tb_test_case     = "Command Write/Read";
+  tb_test_case     = "Streaming / Convolution Test";
   tb_test_case_num = tb_test_case_num + 1;
-  
+
   // Reset the DUT to isolate from prior test case
-  init_input();
-  init_expected();
   reset_dut();
 
-  // Enqueue the write
+  //*****************************************************************************
+  // Test Case 5: New Sample Row Loading Test
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "New Sample Row Loading Test";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior test case
+  reset_dut();
+
+  //*****************************************************************************
+  // Test Case 6: Sample Complete Test
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "Sample Complete Test";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior test case
+  reset_dut();
+
+  //*****************************************************************************
+  // Test Case 2: Full Operation
+  //*****************************************************************************
+  // Update Navigation Info
+  tb_test_case     = "Full Operation";
+  tb_test_case_num = tb_test_case_num + 1;
+
+  // Reset the DUT to isolate from prior test case
+  reset_dut();
+
+  tb_test_case = "Configure FIR Coefficients";
+
+  // 1 Configure FIR Coefficients
+  load_coefficients(COEFF_125, COEFF_25, COEFF_5, COEFF1);
+
+   tb_test_case = "Send first sample";
+
+  // 2 Send the sample data to process
   // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000111, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd100, 1'b0, 1'b1);
   // Run the transactions via the model
   execute_transactions(1);
 
-  // ENSURE COEFF_LOAD_EN, SAMPLE_LOAD_EN, AND NEW_ROW ARE PROPERLY PULSED
+  // 3 Poll the status register until new data is present
+  poll_status();
 
-  // Wait a bit... not testing RAW
-  @(posedge tb_clk);
-  @(posedge tb_clk);
-  @(posedge tb_clk);
+   tb_test_case = "Check first result";
 
-  // Enqueue the read
+  // 4 Read the data from the result buffer
   // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b0, ADDR_COMMAND, 8'b00000000, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd12, 1'b0, 1'b1);
   // Run the transactions via the model
   execute_transactions(1);
+
+  // Repeat steps 2-4 until done with sample data to process with the current FIR coefficients
+
+   tb_test_case = "Send second sample";
+
+  // Send the SECOND sample data to process
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd0, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // 3 Poll the status register until new data is present
+  poll_status();
+
+   tb_test_case = "Check second result";
+
+  // 4 Read the data from the result buffer
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd25, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+   tb_test_case = "Send third sample";
+
+  // Send the THIRD sample data to process
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd0, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // 3 Poll the status register until new data is present
+  poll_status();
+
+  tb_test_case = "Check third result";
+
+  // 4 Read the data from the result buffer
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd50, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  tb_test_case = "Send fourth sample";
+
+  // Send the FOURTH sample data to process
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd0, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // 3 Poll the status register until new data is present
+  poll_status();
+
+  tb_test_case = "Check fourth result";
+
+  // 4 Read the data from the result buffer
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd100, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // Give some visual spacing between check and next test case start
+  #(CLK_PERIOD * 3);
 
   // End of test cases
 end

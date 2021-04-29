@@ -33,7 +33,7 @@ always_ff @ (posedge clk, negedge n_rst) begin
     raddr <= 16'd0;
     count <= 16'd0;
     result <= 16'd0;
-    ram <= 0;
+    ram[0] <= 16'd0;
   end else begin
     waddr <= next_waddr;
     raddr <= next_raddr;
@@ -47,7 +47,7 @@ end
 always_comb begin 
   next_ram = ram; // default
 
-  if (wenable == 1'b1 && ful = 1'b0)
+  if (wenable == 1'b1 && ful == 1'b0)
     next_ram[waddr] = result_in;
 end
 
@@ -55,8 +55,8 @@ end
 always_comb begin
   next_result = result; // default
 
-  if (renable == 1'b1 && emp = 1'b0)
-    next_result = array[raddr];
+  if (renable == 1'b1 && emp == 1'b0)
+    next_result = ram[raddr];
 end
 
 // Next waddr, raddr, and count logic
@@ -70,7 +70,7 @@ always_comb begin
     next_count = count + 1;
   end
 
-  if (renable == 1'b1 && emp = 1'b0) begin
+  if (renable == 1'b1 && emp == 1'b0) begin
     next_raddr = (raddr + 1) % NUM_BYTES;
     next_count = count - 1;
   end

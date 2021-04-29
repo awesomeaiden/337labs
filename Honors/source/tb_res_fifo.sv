@@ -14,6 +14,7 @@ module tb_res_fifo();
   localparam  CLK_PERIOD    = 10;
   localparam  RESET_VALUE     = 0;
   localparam  FF_HOLD_TIME  = 0.100;
+  localparam  NUM_BYTES = 1352;
   // Declare DUT portmap signals
   reg tb_clk;
   reg tb_n_rst;
@@ -26,6 +27,7 @@ module tb_res_fifo();
   // Declare test bench signals
   integer tb_test_num;
   string tb_test_case;
+  integer i;
 
   // Task to cleanly and consistently check DUT outputs
   task check_outputs;
@@ -34,14 +36,14 @@ module tb_res_fifo();
     input string check_tag;
   begin
     if(expected_empty == tb_empty) begin // Check passed
-      $info("Correct empty %s during %s test case", check_tag, tb_test_case);
+      //$info("Correct empty %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect empty %s during %s test case", check_tag, tb_test_case);
     end
 
     if(expected_result_out == tb_result_out) begin // Check passed
-      $info("Correct result_out %s during %s test case", check_tag, tb_test_case);
+      //$info("Correct result_out %s during %s test case", check_tag, tb_test_case);
     end
     else begin // Check failed
       $error("Incorrect result_out %s during %s test case", check_tag, tb_test_case);
@@ -122,7 +124,7 @@ module tb_res_fifo();
     #(CLK_PERIOD * 0.5);
 
     // Check that internal state was correctly reset
-    check_outputs(1'b0, 16'd0, "during reset");
+    check_outputs(1'b1, 16'd0, "during reset");
 
     // Release the reset away from a clock edge
     @(posedge tb_clk);
@@ -130,7 +132,7 @@ module tb_res_fifo();
     tb_n_rst  = 1'b1;   // Deactivate the chip reset
     #0.1;
     // Check that internal state was correctly keep after reset release
-    check_outputs(1'b0, 16'd0, "after reset");
+    check_outputs(1'b1, 16'd0, "after reset");
 
     // ************************************************************************
     // Test Case 2: Wenable Test
@@ -149,7 +151,7 @@ module tb_res_fifo();
     tb_result_in = 16'd68;
     tb_wenable = 1'b1;
     @(posedge tb_clk);
-    tb_result_in = 16'2021;
+    tb_result_in = 16'd2021;
     @(posedge tb_clk);
     tb_wenable = 1'b0;
     tb_result_in = 16'd572;
@@ -164,10 +166,11 @@ module tb_res_fifo();
     // Now read values back
     tb_renable = 1'b1;
     @(posedge tb_clk);
+    @(negedge tb_clk);
     check_outputs(1'b0, 16'd68, "reading first value");
-    @(posedge tb_clk);
+    @(negedge tb_clk);
     check_outputs(1'b0, 16'd2021, "reading second value");
-    @(posedge tb_clk);
+    @(negedge tb_clk);
     check_outputs(1'b1, 16'd984, "reading third value");
 
     // ************************************************************************
@@ -184,29 +187,30 @@ module tb_res_fifo();
     tb_result_in = 16'd68;
     tb_wenable = 1'b1;
     @(posedge tb_clk);
-    tb_result_in = 16'2021;
-    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_result_in = 16'd2021;
+    @(negedge tb_clk);
     tb_result_in = 16'd984;
-    @(posedge tb_clk);
+    @(negedge tb_clk);
     tb_wenable = 1'b0;
 
     // Read while pulsing renable
-    check_output(1'b0, 16'd0, "before reading value");
+    check_outputs(1'b0, 16'd0, "before reading value");
     @(negedge tb_clk);
     tb_renable = 1'b1;
-    @(posedge tb_clk);
-    check_output(1'b0, 16'd68, "reading first value");
+    @(negedge tb_clk);
+    check_outputs(1'b0, 16'd68, "reading first value");
     tb_renable = 1'b0;
-    @(posedge tb_clk);
-    check_output(1'b0, 16'd68, "after first value");
+    @(negedge tb_clk);
+    check_outputs(1'b0, 16'd68, "after first value");
     tb_renable = 1'b1;
-    @(posedge tb_clk);
-    check_output(1'b0, 16'd2021, "reading second value");
-    @(posedge tb_clk);
-    check_output(1'b1, 16'd984, "reading third value");
+    @(negedge tb_clk);
+    check_outputs(1'b0, 16'd2021, "reading second value");
+    @(negedge tb_clk);
+    check_outputs(1'b1, 16'd984, "reading third value");
 
     // ************************************************************************
-    // Test Case 4: Write when Full Test
+    // Test Case 4: Write when Full Test (with address rollover)
     // ************************************************************************
     tb_test_num = tb_test_num + 1;
     tb_test_case = "Write when Full Test";
@@ -216,17 +220,70 @@ module tb_res_fifo();
     reset_dut();
 
     // Fill up FIFO
-    tb_result_in = 16'd68;
+    @(negedge tb_clk);
     tb_wenable = 1'b1;
+    for (i = 0; i < NUM_BYTES; i++) begin
+      tb_result_in = (i + 1);
+      @(negedge tb_clk);
+    end
+    tb_wenable = 1'b0;
+
+    // Attempt one more write - value shouldn't be accepted
     @(posedge tb_clk);
-    tb_result_in = 16'2021;
     @(posedge tb_clk);
-    tb_result_in = 16'd984;
+    @(posedge tb_clk);
+    @(negedge tb_clk);
+    tb_wenable = 1'b1;
+    tb_result_in = 16'd2000;
+    @(posedge tb_clk);
+    @(posedge tb_clk);
+    @(posedge tb_clk);
     @(posedge tb_clk);
     tb_wenable = 1'b0;
 
-    // Attempt to write once more
-    chec
+    // Now read out values
+    tb_renable = 1'b1;
+    @(posedge tb_clk);
+    for (i = 0; i < NUM_BYTES; i++) begin
+      @(negedge tb_clk);
+      check_outputs(1'b0, (i + 1), "reading after write test"); // last one will say incorrect empty but it's correct
+    end
+    tb_renable = 1'b0;
+
+    // Now write more
+    @(negedge tb_clk);
+    tb_wenable = 1'b1;
+    for (i = 0; i < NUM_BYTES; i++) begin
+      tb_result_in = (i + 1);
+      @(negedge tb_clk);
+    end
+    tb_wenable = 1'b0;
+
+    // Now read more
+    tb_renable = 1'b1;
+    @(posedge tb_clk);
+    for (i = 0; i < NUM_BYTES; i++) begin
+      @(negedge tb_clk);
+      check_outputs(1'b0, (i + 1), "reading after more write test"); // last one will say incorrect empty but it's correct
+    end
+    tb_renable = 1'b0;
+   
+    // ************************************************************************
+    // Test Case 5: Read when Empty Test
+    // ************************************************************************
+    tb_test_num = tb_test_num + 1;
+    tb_test_case = "Read when Empty Test";
+
+    // Prepare for test
+    clear_inputs();
+    reset_dut();
+
+    // Attempt read
+    @(negedge tb_clk);
+    tb_renable = 1'b1;
+    @(negedge tb_clk);
+    @(negedge tb_clk);
+    check_outputs(1'b1, 16'd0, "after attempting empty read");
 
   end
 endmodule
