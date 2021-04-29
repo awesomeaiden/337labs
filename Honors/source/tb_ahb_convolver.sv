@@ -340,6 +340,23 @@ initial begin
   // Reset the DUT to isolate from prior test case
   reset_dut();
 
+  // Write to coefficient registers
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_COEFF_ONE, {4'b0001, 4'b0010, 4'b0011}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COEFF_TWO, {4'b0100, 4'b0101, 4'b0110}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COEFF_THREE, {4'b0111, 4'b1000, 4'b1001}, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(3);
+
+  // Write to command/control register to begin coefficient loading
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000001, 1'b0, 1'b0);
+  // Run the transactions via the model
+  execute_transactions(1);
+
+  // Poll the status register until coefficients are loaded
+  poll_status();
+
   //*****************************************************************************
   // Test Case 3: Sample Column Loading Test
   //*****************************************************************************
@@ -347,8 +364,22 @@ initial begin
   tb_test_case     = "Sample Column Loading Test";
   tb_test_case_num = tb_test_case_num + 1;
 
-  // Reset the DUT to isolate from prior test case
-  reset_dut();
+  // DON'T reset the DUT to isolate from prior test case
+  //reset_dut();
+
+  // Write to sample register then sample_load_en repeatedly
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0001, 4'b0010, 4'b0011}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0100, 4'b0101, 4'b0110}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0111, 4'b1000, 4'b1001}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  // Run the transactions via the model
+  execute_transactions(6);
+
+  // Poll the status register until last sample is loaded
+  poll_status();
 
   //*****************************************************************************
   // Test Case 4: Streaming / Convolution Test
@@ -357,8 +388,41 @@ initial begin
   tb_test_case     = "Streaming / Convolution Test";
   tb_test_case_num = tb_test_case_num + 1;
 
-  // Reset the DUT to isolate from prior test case
-  reset_dut();
+  // DON'T reset the DUT to isolate from prior test case
+  //reset_dut();
+
+  // Write to sample register then sample_load_en repeatedly
+  // for_dut, write_mode, address, data, expected_error, size
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0001, 4'b0010, 4'b0011}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0100, 4'b0101, 4'b0110}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0111, 4'b1000, 4'b1001}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0001, 4'b0010, 4'b0011}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0100, 4'b0101, 4'b0110}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0111, 4'b1000, 4'b1001}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0001, 4'b0010, 4'b0011}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0100, 4'b0101, 4'b0110}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0111, 4'b1000, 4'b1001}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0001, 4'b0010, 4'b0011}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0100, 4'b0101, 4'b0110}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b0111, 4'b1000, 4'b1001}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b0);
+  // Run the transactions via the model
+  execute_transactions(24);
+
+  // Poll the status register until last sample is convolved
+  poll_status();
+  
 
   //*****************************************************************************
   // Test Case 5: New Sample Row Loading Test
@@ -367,8 +431,21 @@ initial begin
   tb_test_case     = "New Sample Row Loading Test";
   tb_test_case_num = tb_test_case_num + 1;
 
-  // Reset the DUT to isolate from prior test case
-  reset_dut();
+  // Don't reset the DUT to isolate from prior test case
+  //reset_dut();
+
+  // Write sample then assert new_row to indicate a new row to convolve, then load two more samples normally
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b1111, 4'b1111, 4'b1111}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000100, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b1111, 4'b1111, 4'b1111}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b1111, 4'b1111, 4'b1111}, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b1);
+  // Run the transactions via the model
+  execute_transactions(6)
+
+  // Poll the status register until last sample is convolved
+  poll_status();
 
   //*****************************************************************************
   // Test Case 6: Sample Complete Test
@@ -377,104 +454,64 @@ initial begin
   tb_test_case     = "Sample Complete Test";
   tb_test_case_num = tb_test_case_num + 1;
 
-  // Reset the DUT to isolate from prior test case
-  reset_dut();
+  // DON'T reset the DUT to isolate from prior test case
+  //reset_dut();
+
+  // Assert sample load and new row simultaneously to indicate done with sample (return to idle state)
+  enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000110, 1'b0, 1'b0);
+  // Run the transactions via the model
+  execute_transactions(1)
 
   //*****************************************************************************
-  // Test Case 2: Full Operation
+  // Test Case 7: Verify Correct Results
   //*****************************************************************************
   // Update Navigation Info
-  tb_test_case     = "Full Operation";
+  tb_test_case     = "Verify Correct Results";
   tb_test_case_num = tb_test_case_num + 1;
 
-  // Reset the DUT to isolate from prior test case
-  reset_dut();
+  // DON'T reset the DUT to isolate from prior test case
+  //reset_dut();
 
-  tb_test_case = "Configure FIR Coefficients";
+  // EXPECTED VALUES:
+  // INDEXES: 0 3 6
+  //          1 4 7
+  //          2 5 8
+  //
+  // Coefficients: 1 4 7
+  //               2 5 8  -->
+  //               3 6 9
+  //
+  // Samples:      1 4 7 1 4 7 1 4 7 1 4 7
+  //               2 5 8 2 5 8 2 5 8 2 5 8
+  //               3 6 9 3 6 9 3 6 9 3 6 9
+  //
+  // New Row:      15 15 15
+  //               15 15 15
+  //               15 15 15
+  //
+  // Sequence: 285, 204, 204, 285, 204, 204, 285, 204, 204, 285, 204, 204, 285, 514, 635, 675
+  
 
-  // 1 Configure FIR Coefficients
-  load_coefficients(COEFF_125, COEFF_25, COEFF_5, COEFF1);
-
-   tb_test_case = "Send first sample";
-
-  // 2 Send the sample data to process
+  // Queue reads from result register - expected values provided
   // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd100, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd285, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd204, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd204, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd285, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd204, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd204, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd285, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd204, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd204, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd285, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd204, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd204, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd285, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd514, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd635, 1'b0, 1'b1);
+  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd675, 1'b0, 1'b1);
   // Run the transactions via the model
-  execute_transactions(1);
-
-  // 3 Poll the status register until new data is present
-  poll_status();
-
-   tb_test_case = "Check first result";
-
-  // 4 Read the data from the result buffer
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd12, 1'b0, 1'b1);
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  // Repeat steps 2-4 until done with sample data to process with the current FIR coefficients
-
-   tb_test_case = "Send second sample";
-
-  // Send the SECOND sample data to process
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd0, 1'b0, 1'b1);
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  // 3 Poll the status register until new data is present
-  poll_status();
-
-   tb_test_case = "Check second result";
-
-  // 4 Read the data from the result buffer
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd25, 1'b0, 1'b1);
-  // Run the transactions via the model
-  execute_transactions(1);
-
-   tb_test_case = "Send third sample";
-
-  // Send the THIRD sample data to process
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd0, 1'b0, 1'b1);
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  // 3 Poll the status register until new data is present
-  poll_status();
-
-  tb_test_case = "Check third result";
-
-  // 4 Read the data from the result buffer
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd50, 1'b0, 1'b1);
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  tb_test_case = "Send fourth sample";
-
-  // Send the FOURTH sample data to process
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, 16'd0, 1'b0, 1'b1);
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  // 3 Poll the status register until new data is present
-  poll_status();
-
-  tb_test_case = "Check fourth result";
-
-  // 4 Read the data from the result buffer
-  // for_dut, write_mode, address, data, expected_error, size
-  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd100, 1'b0, 1'b1);
-  // Run the transactions via the model
-  execute_transactions(1);
-
-  // Give some visual spacing between check and next test case start
-  #(CLK_PERIOD * 3);
+  execute_transactions(16)
 
   // End of test cases
 end
