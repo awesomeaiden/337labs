@@ -422,7 +422,7 @@ initial begin
 
   // Poll the status register until last sample is convolved
   poll_status();
-  
+
 
   //*****************************************************************************
   // Test Case 5: New Sample Row Loading Test
@@ -463,11 +463,10 @@ initial begin
   execute_transactions(1);
 
   //*****************************************************************************
-  // Test Case 7: Verify Correct Results
+  // Test Case 6 (continued): Verify Correct Results
   //*****************************************************************************
   // Update Navigation Info
   tb_test_case     = "Verify Correct Results";
-  tb_test_case_num = tb_test_case_num + 1;
 
   // DON'T reset the DUT to isolate from prior test case
   //reset_dut();
@@ -490,7 +489,7 @@ initial begin
   //               15 15 15
   //
   // Sequence: 285, 204, 204, 285, 204, 204, 285, 204, 204, 285, 204, 204, 285, 675
-  
+
 
   // Queue reads from result register - expected values provided
   // for_dut, write_mode, address, data, expected_error, size
