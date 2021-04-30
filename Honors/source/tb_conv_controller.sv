@@ -386,10 +386,10 @@ module tb_conv_controller();
     @(negedge tb_clk);
     check_output("returned to idle state");
     tb_new_row = 1'b0;
-    tb_example_load_en = 1'b1;
+    tb_sample_load_en = 1'b0;
 
     tb_test_num = tb_test_num + 1;
-    tb_test_case = "Testing Complete"
+    tb_test_case = "Testing Complete";
     reset_dut();
 
   end

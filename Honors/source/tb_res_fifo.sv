@@ -165,13 +165,14 @@ module tb_res_fifo();
     
     // Now read values back
     tb_renable = 1'b1;
-    @(posedge tb_clk);
     @(negedge tb_clk);
     check_outputs(1'b0, 16'd68, "reading first value");
     @(negedge tb_clk);
     check_outputs(1'b0, 16'd2021, "reading second value");
     @(negedge tb_clk);
-    check_outputs(1'b1, 16'd984, "reading third value");
+    check_outputs(1'b0, 16'd984, "reading third value");
+    @(negedge tb_clk);
+    check_outputs(1'b1, 16'd0, "reading third value");
 
     // ************************************************************************
     // Test Case 3: Renable Test
@@ -197,17 +198,18 @@ module tb_res_fifo();
     // Read while pulsing renable
     check_outputs(1'b0, 16'd0, "before reading value");
     @(negedge tb_clk);
+    @(posedge tb_clk);
     tb_renable = 1'b1;
     @(negedge tb_clk);
     check_outputs(1'b0, 16'd68, "reading first value");
     tb_renable = 1'b0;
     @(negedge tb_clk);
-    check_outputs(1'b0, 16'd68, "after first value");
+    check_outputs(1'b0, 16'd0, "after first value");
     tb_renable = 1'b1;
     @(negedge tb_clk);
     check_outputs(1'b0, 16'd2021, "reading second value");
     @(negedge tb_clk);
-    check_outputs(1'b1, 16'd984, "reading third value");
+    check_outputs(1'b0, 16'd984, "reading third value");
 
     // ************************************************************************
     // Test Case 4: Write when Full Test (with address rollover)
@@ -243,7 +245,6 @@ module tb_res_fifo();
 
     // Now read out values
     tb_renable = 1'b1;
-    @(posedge tb_clk);
     for (i = 0; i < NUM_BYTES; i++) begin
       @(negedge tb_clk);
       check_outputs(1'b0, (i + 1), "reading after write test"); // last one will say incorrect empty but it's correct
@@ -261,7 +262,6 @@ module tb_res_fifo();
 
     // Now read more
     tb_renable = 1'b1;
-    @(posedge tb_clk);
     for (i = 0; i < NUM_BYTES; i++) begin
       @(negedge tb_clk);
       check_outputs(1'b0, (i + 1), "reading after more write test"); // last one will say incorrect empty but it's correct
