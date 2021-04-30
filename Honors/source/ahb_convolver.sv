@@ -115,7 +115,9 @@ module ahb_convolver
   );
 
   // Sample Shift Register
-  
+  samp_shift_reg SAMP (
+    
+  );
 
   // Multipliers/Adder Tree
   mult_add MULTADD (
