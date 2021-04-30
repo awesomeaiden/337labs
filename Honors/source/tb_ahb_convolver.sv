@@ -187,7 +187,7 @@ begin
   poll = 1;
   while (poll == 1) begin
     // for_dut, write_mode, address, data, expected_error, size
-    enqueue_transaction(1'b1, 1'b0, ADDR_STATUS, 8'b00000001, 1'b0, 1'b0);
+    enqueue_transaction(1'b1, 1'b0, ADDR_STATUS, 16'bxxxxxxxxxxxxxxx1, 1'b0, 1'b1);
     // Run the transactions via the model
     execute_transactions(1);
     poll = tb_hrdata[0];
@@ -442,7 +442,7 @@ initial begin
   enqueue_transaction(1'b1, 1'b1, ADDR_SAMPLE, {4'b1111, 4'b1111, 4'b1111}, 1'b0, 1'b1);
   enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000010, 1'b0, 1'b1);
   // Run the transactions via the model
-  execute_transactions(6)
+  execute_transactions(6);
 
   // Poll the status register until last sample is convolved
   poll_status();
@@ -460,7 +460,7 @@ initial begin
   // Assert sample load and new row simultaneously to indicate done with sample (return to idle state)
   enqueue_transaction(1'b1, 1'b1, ADDR_COMMAND, 8'b00000110, 1'b0, 1'b0);
   // Run the transactions via the model
-  execute_transactions(1)
+  execute_transactions(1);
 
   //*****************************************************************************
   // Test Case 7: Verify Correct Results
@@ -489,7 +489,7 @@ initial begin
   //               15 15 15
   //               15 15 15
   //
-  // Sequence: 285, 204, 204, 285, 204, 204, 285, 204, 204, 285, 204, 204, 285, 514, 635, 675
+  // Sequence: 285, 204, 204, 285, 204, 204, 285, 204, 204, 285, 204, 204, 285, 675
   
 
   // Queue reads from result register - expected values provided
@@ -507,13 +507,14 @@ initial begin
   enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd204, 1'b0, 1'b1);
   enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd204, 1'b0, 1'b1);
   enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd285, 1'b0, 1'b1);
-  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd514, 1'b0, 1'b1);
-  enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd635, 1'b0, 1'b1);
   enqueue_transaction(1'b1, 1'b0, ADDR_RESULT, 16'd675, 1'b0, 1'b1);
   // Run the transactions via the model
-  execute_transactions(16)
+  execute_transactions(14);
 
+  // Reset DUT
+  reset_dut();
   // End of test cases
+
 end
 
 endmodule

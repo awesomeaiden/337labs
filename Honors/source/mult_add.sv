@@ -17,10 +17,6 @@ module mult_add
   output wire result_ready
 );
 
-// Result Ready
-logic res_rdy;
-logic state, next_state;
-
 // Multipliers / Adders
 assign result = (sample_in[3:0] * coeff_in[3:0]) 
               + (sample_in[7:4] * coeff_in[7:4])
@@ -32,40 +28,6 @@ assign result = (sample_in[3:0] * coeff_in[3:0])
               + (sample_in[31:28] * coeff_in[31:28])
               + (sample_in[35:32] * coeff_in[35:32]);
 
-// State register
-always_ff @ (posedge clk, negedge n_rst) begin
-  if (n_rst == 1'b0) begin
-    state <= 1'b0;
-  end else begin
-    state <= next_state;
-  end
-end
-
-// Next state logic
-always_comb begin
-  next_state = state; // default
-
-  case (state)
-    1'b0: begin // idle
-      if (conv_en == 1'b1) begin
-        next_state = 1'b1;
-      end
-    end
-    1'b1: begin // result
-      next_state = 1'b0;
-    end
-  endcase
-end
-
-// Output logic
-always_comb begin
-  res_rdy = 1'b0; // default
-
-  if (state == 1'b1) begin
-    res_rdy = 1'b1;
-  end
-end
-
-assign result_ready = res_rdy;
+assign result_ready = conv_en;
 
 endmodule

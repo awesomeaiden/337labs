@@ -97,8 +97,8 @@ module ahb_convolver
   res_fifo FIFO (
     .clk(clk),
     .n_rst(n_rst),
-    .wenable(wenable),
-    .renable(renable),
+    .wenable(result_ready),
+    .renable(read_enable),
     .result_in(result),
     .empty(empty),
     .result_out(result_in)
@@ -116,7 +116,11 @@ module ahb_convolver
 
   // Sample Shift Register
   samp_shift_reg SAMP (
-    
+    .clk(clk),
+    .n_rst(n_rst),
+    .shift_en(sample_shift),
+    .col_in(col_out),
+    .sample_out(sample_out)
   );
 
   // Multipliers/Adder Tree

@@ -21,24 +21,26 @@ module res_fifo
 // Registers
 logic [15:0] waddr, next_waddr, raddr, next_raddr, count, next_count;
 logic [15:0] ram[(NUM_BYTES - 1):0], next_ram[(NUM_BYTES - 1):0];
-logic [15:0] result, next_result;
+logic [15:0] result;//, next_result;
 
 // Connectors
 logic emp, ful;
 
 // Registers
+integer i; // for loop variable
 always_ff @ (posedge clk, negedge n_rst) begin
   if (n_rst == 1'b0) begin
     waddr <= 16'd0;
     raddr <= 16'd0;
     count <= 16'd0;
-    result <= 16'd0;
-    ram[0] <= 16'd0;
+    //result <= 16'd0;
+    // zero-out ram
+    for (i = 0; i < NUM_BYTES; i++) ram[i] <= 16'd0;
   end else begin
     waddr <= next_waddr;
     raddr <= next_raddr;
     count <= next_count;
-    result <= next_result;
+    //result <= next_result;
     ram <= next_ram;
   end
 end
@@ -53,10 +55,12 @@ end
 
 // Read logic
 always_comb begin
-  next_result = result; // default
+  //next_result = result; // default
+  result = 16'd0; // default
 
   if (renable == 1'b1 && emp == 1'b0)
-    next_result = ram[raddr];
+    //next_result = ram[raddr];
+    result = ram[raddr];
 end
 
 // Next waddr, raddr, and count logic

@@ -109,7 +109,7 @@ end
 always_comb begin
   mod = 1'b0; // default
   stream = 1'b0; // default
-  shift = 1'b0; // default
+  //shift = 1'b0; // default
   conv = 1'b0; // default
   load = 1'b0; // default
   sel = 2'b00; // default
@@ -117,15 +117,15 @@ always_comb begin
   case (state)
     4'b0001: begin // S0 LOAD
       mod = 1'b1;
-      shift = 1'b1;
+      //shift = 1'b1;
     end
     4'b0011: begin // S1 LOAD
       mod = 1'b1;
-      shift = 1'b1;
+      //shift = 1'b1;
     end
     4'b0101: begin // S2 LOAD
       mod = 1'b1;
-      shift = 1'b1;
+      //shift = 1'b1;
     end
     4'b0110: begin // CONVOLVE
       conv = 1'b1;
@@ -133,7 +133,7 @@ always_comb begin
     end
     4'b0111: begin // SAMPLE STREAM
       mod = 1'b1;
-      shift = 1'b1;
+      //shift = 1'b1;
     end
     4'b1000: begin // CF0 LOAD
       mod = 1'b1;
@@ -159,7 +159,7 @@ end
 
 assign modwait = mod;
 assign sample_stream = stream;
-assign sample_shift = shift;
+assign sample_shift = (sample_load_en ^ new_row);
 assign convolve_en = conv;
 assign coeff_ld = load;
 assign coeff_sel = sel;
