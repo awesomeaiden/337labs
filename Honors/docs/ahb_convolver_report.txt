@@ -1,0 +1,184 @@
+Information: Updating design information... (UID-85)
+Warning: Design 'ahb_convolver' contains 1 high-fanout nets. A fanout number of 1000 will be used for delay calculations involving these nets. (TIM-134)
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : ahb_convolver
+Version: K-2015.06-SP1
+Date   : Fri Apr 30 03:06:16 2021
+****************************************
+
+ # A fanout number of 1000 was used for high fanout net computations.
+
+Operating Conditions: typical   Library: osu05_stdcells
+Wire Load Model Mode: top
+
+  Startpoint: SAMP/state_reg[0][8]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: FIFO/ram_reg[9][11]
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  SAMP/state_reg[0][8]/CLK (DFFSR)                        0.00 #     0.00 r
+  SAMP/state_reg[0][8]/Q (DFFSR)                          0.54       0.54 f
+  SAMP/sample_out[8] (samp_shift_reg)                     0.00       0.54 f
+  MULTADD/sample_in[8] (mult_add)                         0.00       0.54 f
+  MULTADD/mult_21_3/a[0] (mult_add_DW_mult_uns_2)         0.00       0.54 f
+  MULTADD/mult_21_3/U55/Y (INVX2)                         0.16       0.70 r
+  MULTADD/mult_21_3/U62/Y (NOR2X1)                        0.22       0.93 f
+  MULTADD/mult_21_3/U13/YS (HAX1)                         0.47       1.40 f
+  MULTADD/mult_21_3/U40/Y (XOR2X1)                        0.26       1.66 f
+  MULTADD/mult_21_3/U41/Y (XOR2X1)                        0.33       1.99 r
+  MULTADD/mult_21_3/product[2] (mult_add_DW_mult_uns_2)
+                                                          0.00       1.99 r
+  MULTADD/add_7_root_add_0_root_add_21_8/B[2] (mult_add_DW01_add_6)
+                                                          0.00       1.99 r
+  MULTADD/add_7_root_add_0_root_add_21_8/U1_2/YS (FAX1)
+                                                          0.61       2.60 f
+  MULTADD/add_7_root_add_0_root_add_21_8/SUM[2] (mult_add_DW01_add_6)
+                                                          0.00       2.60 f
+  MULTADD/add_3_root_add_0_root_add_21_8/U1_2/YS (FAX1)
+                                                          0.65       3.25 f
+  MULTADD/add_2_root_add_0_root_add_21_8/U1_2/YC (FAX1)
+                                                          0.46       3.71 f
+  MULTADD/add_2_root_add_0_root_add_21_8/U1_3/YS (FAX1)
+                                                          0.59       4.31 f
+  MULTADD/add_1_root_add_0_root_add_21_8/U1_3/YC (FAX1)
+                                                          0.47       4.78 f
+  MULTADD/add_1_root_add_0_root_add_21_8/U1_4/YC (FAX1)
+                                                          0.45       5.23 f
+  MULTADD/add_1_root_add_0_root_add_21_8/U1_5/YC (FAX1)
+                                                          0.45       5.69 f
+  MULTADD/add_1_root_add_0_root_add_21_8/U1_6/YC (FAX1)
+                                                          0.45       6.14 f
+  MULTADD/add_1_root_add_0_root_add_21_8/U1_7/YC (FAX1)
+                                                          0.45       6.59 f
+  MULTADD/add_1_root_add_0_root_add_21_8/U1_8/YS (FAX1)
+                                                          0.60       7.19 f
+  MULTADD/U11/Y (NAND2X1)                                 0.20       7.39 r
+  MULTADD/U12/Y (NAND3X1)                                 0.15       7.53 f
+  MULTADD/U26/Y (AND2X2)                                  0.26       7.80 f
+  MULTADD/U25/Y (AND2X2)                                  0.24       8.04 f
+  MULTADD/U28/Y (XOR2X1)                                  0.16       8.20 r
+  MULTADD/result[11] (mult_add)                           0.00       8.20 r
+  FIFO/result_in[11] (res_fifo)                           0.00       8.20 r
+  FIFO/U87797/Y (NAND2X1)                                 0.13       8.33 f
+  FIFO/U32917/Y (BUFX2)                                   0.22       8.55 f
+  FIFO/U8/Y (BUFX2)                                       0.19       8.74 f
+  FIFO/U25255/Y (BUFX2)                                   0.18       8.92 f
+  FIFO/U18/Y (BUFX2)                                      0.56       9.47 f
+  FIFO/U63362/Y (OAI22X1)                                 0.24       9.71 r
+  FIFO/ram_reg[9][11]/D (DFFSR)                           0.00       9.71 r
+  data arrival time                                                  9.71
+
+  clock clk (rise edge)                                  10.00      10.00
+  clock network delay (ideal)                             0.00      10.00
+  FIFO/ram_reg[9][11]/CLK (DFFSR)                         0.00      10.00 r
+  library setup time                                     -0.24       9.76
+  data required time                                                 9.76
+  --------------------------------------------------------------------------
+  data required time                                                 9.76
+  data arrival time                                                 -9.71
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.05
+
+
+1
+ 
+****************************************
+Report : area
+Design : ahb_convolver
+Version: K-2015.06-SP1
+Date   : Fri Apr 30 03:06:16 2021
+****************************************
+
+Library(s) Used:
+
+    osu05_stdcells (File: /package/eda/cells/OSU/v2.7/synopsys/lib/ami05/osu05_stdcells.db)
+
+Number of ports:                          752
+Number of nets:                        121043
+Number of cells:                       120215
+Number of combinational cells:          76495
+Number of sequential cells:             43700
+Number of macros/black boxes:               0
+Number of buf/inv:                      31031
+Number of references:                       6
+
+Combinational area:           20148525.000000
+Buf/Inv area:                  4871592.000000
+Noncombinational area:        34596144.000000
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (No wire load specified)
+
+Total cell area:              54744669.000000
+Total area:                 undefined
+1
+Loading db file '/package/eda/cells/OSU/v2.7/synopsys/lib/ami05/osu05_stdcells.db'
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -hier
+        -analysis_effort low
+Design : ahb_convolver
+Version: K-2015.06-SP1
+Date   : Fri Apr 30 03:06:22 2021
+****************************************
+
+
+Library(s) Used:
+
+    osu05_stdcells (File: /package/eda/cells/OSU/v2.7/synopsys/lib/ami05/osu05_stdcells.db)
+
+
+Operating Conditions: typical   Library: osu05_stdcells
+Wire Load Model Mode: top
+
+
+Global Operating Voltage = 5    
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000pf
+    Time Units = 1ns
+    Dynamic Power Units = 1mW    (derived from V,C,T units)
+    Leakage Power Units = 1nW
+
+
+--------------------------------------------------------------------------------
+                                       Switch   Int      Leak     Total
+Hierarchy                              Power    Power    Power    Power    %
+--------------------------------------------------------------------------------
+ahb_convolver                           122.819 4.49e+03 1.70e+04 4.61e+03 100.0
+  MULTADD (mult_add)                   1.70e-02 9.88e-03   73.276 2.69e-02   0.0
+    add_7_root_add_0_root_add_21_8 (mult_add_DW01_add_6)
+                                       1.57e-04 1.48e-04    2.848 3.08e-04   0.0
+    mult_21 (mult_add_DW_mult_uns_0)   9.23e-04 5.03e-04    5.039 1.43e-03   0.0
+    mult_21_2 (mult_add_DW_mult_uns_1) 9.81e-04 5.59e-04    5.554 1.55e-03   0.0
+    mult_21_3 (mult_add_DW_mult_uns_2) 7.06e-04 3.77e-04    5.522 1.09e-03   0.0
+    mult_21_4 (mult_add_DW_mult_uns_3) 1.86e-03 1.04e-03    5.039 2.91e-03   0.0
+    mult_21_5 (mult_add_DW_mult_uns_4) 1.49e-03 7.58e-04    5.039 2.25e-03   0.0
+    mult_21_6 (mult_add_DW_mult_uns_5) 1.60e-03 8.36e-04    5.039 2.44e-03   0.0
+    mult_21_7 (mult_add_DW_mult_uns_6) 2.41e-03 1.04e-03    5.039 3.46e-03   0.0
+    mult_21_8 (mult_add_DW_mult_uns_7) 2.30e-03 9.88e-04    5.039 3.29e-03   0.0
+    mult_21_9 (mult_add_DW_mult_uns_8) 1.95e-03 7.37e-04    5.039 2.70e-03   0.0
+  SAMP (samp_shift_reg)                2.50e-02    7.506   24.632    7.531   0.2
+  COEFF (coeff_reg)                    1.96e-02    7.379   24.620    7.398   0.2
+  FIFO (res_fifo)                       121.179 4.45e+03 1.67e+04 4.58e+03  99.2
+    rem_73 (res_fifo_DW_div_uns_1)     3.16e-05 4.26e-05    7.378 8.16e-05   0.0
+    add_74 (res_fifo_DW01_inc_1)       9.86e-06 2.99e-05    3.936 4.37e-05   0.0
+    rem_78 (res_fifo_DW_div_uns_0)        0.000    0.000    7.378 7.38e-06   0.0
+    sub_79 (res_fifo_DW01_dec_0)       2.86e-04 2.49e-04    2.459 5.38e-04   0.0
+  CTRL (conv_controller)               2.30e-02    0.842    6.665    0.865   0.0
+  AHB (ahb_slave)                         1.474   20.537   80.106   22.011   0.5
+1
