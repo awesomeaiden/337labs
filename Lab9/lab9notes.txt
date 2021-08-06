@@ -1,0 +1,105 @@
+Mapped Results:
+Total Score: 24.96/60.00
+Score breakdown by test case:
+ Results for basic test cases:
+  Test case 1: 2.000/2.000
+  Test case 2: 1.000/1.000
+  Test case 3: 1.000/1.000
+  Test case 4: 3.000/3.000
+  Test case 5: 3.000/3.000
+  Test case 6: 2.950/4.000
+   Correct transfer behavior during address phase for checking FIR result value for sample #0 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR result value for sample #0 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #0 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #0 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #1 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #1 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #1 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #1 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #2 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #2 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #2 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #2 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #3 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #3 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #3 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #3 during Sample Streaming phase of Safe Small Flat Sample Stream test case
+  Test case 7: 2.950/4.000
+   Correct transfer behavior during address phase for checking FIR result value for sample #0 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR result value for sample #0 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #0 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #0 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #1 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #1 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #1 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #1 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #2 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #2 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #2 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #2 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #3 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #3 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #3 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #3 during Sample Streaming phase of Safe Large Flat Sample Stream test case
+  Test case 8: 2.950/4.000
+   Correct transfer behavior during address phase for checking FIR result value for sample #0 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR result value for sample #0 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #0 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #0 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #1 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #1 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #1 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #1 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #2 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #2 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #2 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #2 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #3 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #3 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #3 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #3 during Sample Streaming phase of Safe Small Edge Sample Stream test case
+  Test case 9: 2.950/4.000
+   Correct transfer behavior during address phase for checking FIR result value for sample #0 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR result value for sample #0 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #0 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #0 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #1 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #1 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #1 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #1 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #2 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #2 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #2 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #2 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #3 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #3 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #3 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #3 during Sample Streaming phase of Safe Large Edge Sample Stream test case
+  Test case 10: 3.160/4.000
+   Correct transfer behavior for setting F0 during Loading Coefficient Set 1 phase of Sample Processing test case
+   Correct transfer behavior for setting F1 during Loading Coefficient Set 1 phase of Sample Processing test case
+   Correct transfer behavior for setting F2 during Loading Coefficient Set 1 phase of Sample Processing test case
+   Correct transfer behavior for setting F3 during Loading Coefficient Set 1 phase of Sample Processing test case
+   Correct transfer behavior for setting Coefficient Set Confirmation during Loading Coefficient Set 1 phase of Sample Processing test case
+   Correct transfer behavior during address phase for checking that Loading Sequence Started during Loading Coefficient Set 1 phase of Sample Processing test case
+   Correct transfer behavior during data phase for checking that Loading Sequence Started during Loading Coefficient Set 1 phase of Sample Processing test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #0 during Sample Processing with coefficient set 1 phase of Sample Processing test case
+   Correct transfer behavior during data phase for checking FIR result value for sample #0 during Sample Processing with coefficient set 1 phase of Sample Processing test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #0 during Sample Processing with coefficient set 1 phase of Sample Processing test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #0 during Sample Processing with coefficient set 1 phase of Sample Processing test case
+   Correct transfer behavior for setting F0 during Loading Coefficient Set 2 phase of Sample Processing test case
+   Correct transfer behavior for setting F1 during Loading Coefficient Set 2 phase of Sample Processing test case
+   Correct transfer behavior for setting F2 during Loading Coefficient Set 2 phase of Sample Processing test case
+   Correct transfer behavior for setting F3 during Loading Coefficient Set 2 phase of Sample Processing test case
+   Correct transfer behavior for setting Coefficient Set Confirmation during Loading Coefficient Set 2 phase of Sample Processing test case
+   Correct transfer behavior during address phase for checking that Loading Sequence Started during Loading Coefficient Set 2 phase of Sample Processing test case
+   Correct transfer behavior during data phase for checking that Loading Sequence Started during Loading Coefficient Set 2 phase of Sample Processing test case
+   Correct transfer behavior during address phase for checking FIR result value for sample #0 during Sample Processing with coefficient set 2 phase of Sample Processing test case
+   Incorrect transfer behavior during data phase for checking FIR result value for sample #0 during Sample Processing with coefficient set 2 phase of Sample Processing test case
+   Correct transfer behavior during address phase for checking FIR error value for sample #0 during Sample Processing with coefficient set 2 phase of Sample Processing test case
+   Correct transfer behavior during data phase for checking FIR error value for sample #0 during Sample Processing with coefficient set 2 phase of Sample Processing test case
+As this is supposed to be used to grade a functional design that you have
+already throughly tested, the more advanced test cases will not contribute
+points to your score until all of the Basic test cases are 100% satisfied.
+Additionally the results of the more advanced test cases will not be reported
+to you until all of the Basic test cases are 100% satisfied.
